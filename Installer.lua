@@ -263,42 +263,43 @@ imgui.OnFrame(
                 imgui.Separator()
                 imgui.Text(u8"Настройки...")
                 imgui.Separator()
-            end
-            imgui.Columns(3)
-            imgui.CenterColumnText(u8" ")
-            imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
-            imgui.NextColumn()
-            imgui.CenterColumnText(u8" ")
-            imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
-            imgui.NextColumn()
-            imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-            imgui.CenterColumnText(u8(""))
-            imgui.Columns(1)
-            imgui.Separator()
-            for index, value in ipairs(support_scripts) do
+            else
                 imgui.Columns(3)
-                imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
+                imgui.CenterColumnText(u8" ")
+                imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
                 imgui.NextColumn()
-                imgui.CenterColumnText(u8(value.info))	
+                imgui.CenterColumnText(u8" ")
+                imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
                 imgui.NextColumn()
-                if doesFileExist(dir .. '/' .. value.name .. '.lua') then
-                    if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" ##") .. index) then
-                        os.remove(dir .. '/' .. value.name .. '.lua')
-                        lua_thread.create(function ()
-                            msg(' ' .. value.name .. '.lua  !    3 �������...')
-                            MainWindow[0] = false
-                            wait(3000)
-                            reloadScripts()
-                        end)
-                    end
-                else
-                    if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" ##") .. index) then
-                        downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
-                        MainWindow[0] = false
-                    end
-                end
+                imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+                imgui.CenterColumnText(u8(""))
                 imgui.Columns(1)
                 imgui.Separator()
+                for index, value in ipairs(support_scripts) do
+                    imgui.Columns(3)
+                    imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
+                    imgui.NextColumn()
+                    imgui.CenterColumnText(u8(value.info))	
+                    imgui.NextColumn()
+                    if doesFileExist(dir .. '/' .. value.name .. '.lua') then
+                        if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" ##") .. index) then
+                            os.remove(dir .. '/' .. value.name .. '.lua')
+                            lua_thread.create(function ()
+                                msg(' ' .. value.name .. '.lua  !    3 ...')
+                                MainWindow[0] = false
+                                wait(3000)
+                                reloadScripts()
+                            end)
+                        end
+                    else
+                        if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" ##") .. index) then
+                            downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
+                            MainWindow[0] = false
+                        end
+                    end
+                    imgui.Columns(1)
+                    imgui.Separator()
+                end
             end
             imgui.EndChild()
         end
