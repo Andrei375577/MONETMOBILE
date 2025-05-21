@@ -9,7 +9,6 @@ local fa = require('fAwesome6_solid')
 local sizeX, sizeY = getScreenResolution()
 local MainWindow = imgui.new.bool()
 local StyleWindow = imgui.new.bool(false)
-local styleConfigFile = configDirectory .. "/style.json"
 
 local styleVars = {
     WindowRounding = imgui.GetStyle().WindowRounding,
@@ -222,40 +221,6 @@ function get_all_scripts()
 	end
 end
 
-local function saveStyle()
-    local file = io.open(styleConfigFile, "w")
-    if file then
-        local cjson = require("cjson")
-        file:write(cjson.encode(styleVars))
-        file:close()
-        msg("Стиль сохранён!")
-    end
-end
-
-local function loadStyle()
-    if doesFileExist(styleConfigFile) then
-        local file = io.open(styleConfigFile, "r")
-        if file then
-            local cjson = require("cjson")
-            local content = file:read("*a")
-            file:close()
-            local status, data = pcall(cjson.decode, content)
-            if status and type(data) == "table" then
-                for k, v in pairs(data) do
-                    styleVars[k] = v
-                end
-            end
-        end
-    end
-    -- применяем стиль
-    imgui.GetStyle().WindowRounding = styleVars.WindowRounding
-    imgui.GetStyle().FrameRounding = styleVars.FrameRounding
-    imgui.GetStyle().ScrollbarRounding = styleVars.ScrollbarRounding
-    imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
-    imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
-    imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
-end
-
 imgui.OnInitialize(function()
     imgui.GetIO().IniFilename = nil
     if isMonetLoader() then
@@ -264,7 +229,6 @@ imgui.OnInitialize(function()
         fa.Init()
     end
     imgui.SwitchContext()
-    loadStyle()
 
     --   
     imgui.GetStyle().WindowPadding = imgui.ImVec2(8 * MONET_DPI_SCALE, 8 * MONET_DPI_SCALE)
@@ -369,14 +333,6 @@ imgui.OnFrame(
 				imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
 				imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
 				imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
-			end
-			imgui.SameLine()
-			if imgui.Button(u8"Сохранить") then
-				saveStyle()
-			end
-			imgui.SameLine()
-			if imgui.Button(u8"Загрузить") then
-				loadStyle()
 			end
 			imgui.End()
 		end
