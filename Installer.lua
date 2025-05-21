@@ -312,7 +312,7 @@ imgui.OnFrame(
                 local styles = {"Стандартный (тёмный)", "Белый"}
                 imgui.Combo(u8"Стиль интерфейса", styleSelect, styles, #styles)
                 if imgui.Button(u8"Применить стиль") then
-                    if styleSelect == 0 then
+                    if styleSelect[0] == 0 then
                         -- Стандартный (тёмный)
                         imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
                         imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
@@ -337,7 +337,7 @@ imgui.OnFrame(
                         imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
                         imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
                         imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
-                    elseif styleSelect == 1 then
+                    elseif styleSelect[0] == 1 then
                         -- Белый стиль
                         imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
                         imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
