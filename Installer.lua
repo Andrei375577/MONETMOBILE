@@ -258,12 +258,12 @@ imgui.OnFrame(
         if imgui.Button(fa.GEAR .. "##style") then
             StyleWindow[0] = not StyleWindow[0]
         end
-        if StyleWindow[0] then
-            imgui.Separator()
-            imgui.Text(u8"Настройки...")
-            imgui.Separator()
-        end
         if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
+            if StyleWindow[0] then
+                imgui.Separator()
+                imgui.Text(u8"Настройки...")
+                imgui.Separator()
+            end
             imgui.Columns(3)
             imgui.CenterColumnText(u8" ")
             imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
