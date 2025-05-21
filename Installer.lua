@@ -253,8 +253,7 @@ imgui.OnFrame(
         imgui.SetNextWindowSize(imgui.ImVec2(1000, 600), imgui.Cond.FirstUseEver)
         imgui.Begin(fa.GEAR .." MONETMOBILE Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
         imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-        -- Кнопка-шестерёнка справа сверху
-        imgui.SameLine(imgui.GetWindowWidth() - 36)
+        -- Кнопка-шестерёнка в левом верхнем углу
         if imgui.Button(fa.GEAR .. "##style") then
             -- StyleWindow[0] = not StyleWindow[0]
         end
