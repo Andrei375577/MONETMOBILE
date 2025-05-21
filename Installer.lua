@@ -5,7 +5,7 @@ script_author("MONETMOBILE")
 script_version("1.0")
 
 require("lib.moonloader")
--- require('encoding').default = 'CP1251'
+require('encoding').default = 'CP1251'
 local u8 = require('encoding').UTF8
 local ffi = require('ffi')
 local effil = require('effil')
@@ -39,7 +39,7 @@ function main()
     sampRegisterChatCommand('install', get_all_scripts)
 
     repeat wait(0) until sampIsLocalPlayerSpawned()
-    msg(u8('Для установки/обновления используйте команду {00ccff}/install'))
+    msg('Для установки/обновления используйте команду {00ccff}/install')
 
     wait(-1)
 
@@ -139,19 +139,19 @@ function downloadFileFromUrlToPath(url, path)
 				--print(("���������� %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				lua_thread.create(function ()
-					msg(u8('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...'))
+					msg('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...')
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg(u8('Ошибка загрузки: ' .. pos))
+				msg('Ошибка загрузки: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				lua_thread.create(function ()
-					msg(u8('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...'))
+					msg('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...')
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -175,7 +175,7 @@ function get_all_scripts()
 					sort()
 				end
 			elseif type == "error" then
-				msg(u8('Ошибка: не удалось прочитать JSON: ' .. tostring(pos)))
+				msg('Ошибка: не удалось прочитать JSON: ' .. tostring(pos))
 			end
 		end)
 	else
@@ -191,7 +191,7 @@ function get_all_scripts()
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			msg(u8('Ошибка: файл не найден'))
+			msg('Ошибка: файл не найден')
 			return nil
 		end
 		local file = io.open(filePath, "r")
@@ -200,7 +200,7 @@ function get_all_scripts()
 		local cjson = require("cjson") --  "cjson"
 		local status, jsonData = pcall(cjson.decode, content)
 		if not status then
-			msg(u8('Ошибка: не удалось прочитать JSON: ' .. tostring(err)))
+			msg('Ошибка: не удалось прочитать JSON: ' .. tostring(err))
 			return nil
 		end
 		return jsonData
@@ -324,7 +324,7 @@ imgui.OnFrame(
 					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(' Удалить##') .. index) then
 						os.remove(script_path)
 						lua_thread.create(function ()
-							msg(u8('Скрипт ' .. value.name .. '.lua успешно удалён! Перезагрузка через 3 секунды...'))
+							msg('Скрипт ' .. value.name .. '.lua успешно удалён! Перезагрузка через 3 секунды...')
 							MainWindow[0] = false
 							wait(3000)
 							reloadScripts()
