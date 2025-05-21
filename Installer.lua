@@ -265,77 +265,78 @@ end)
 imgui.OnFrame(
     function() return MainWindow[0] end,
     function(player)
-		imgui.Begin(fa.GEAR .." MONETMOBILE Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
-		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-		-- Кнопка-шестерёнка справа сверху
-		imgui.SameLine(imgui.GetWindowWidth() - 36)
-		if imgui.Button(fa.GEAR .. "##style") then
-			StyleWindow[0] = not StyleWindow[0]
-		end
-		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
-			imgui.Columns(3)
-			imgui.CenterColumnText(u8"�������� � ������")
-			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
-			imgui.NextColumn()
-			imgui.CenterColumnText(u8"������� ��������")
-			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
-			imgui.NextColumn()
-			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-			imgui.CenterColumnText(u8("��������"))
-			imgui.Columns(1)
-			imgui.Separator()
-			for index, value in ipairs(support_scripts) do
-				imgui.Columns(3)
-				imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
-				imgui.NextColumn()
-				imgui.CenterColumnText(u8(value.info))	
-				imgui.NextColumn()
-				if doesFileExist(dir .. '/' .. value.name .. '.lua') then
-					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" �������##") .. index) then
-						os.remove(dir .. '/' .. value.name .. '.lua')
-						lua_thread.create(function ()
-							msg('������ ' .. value.name .. '.lua ������� �����! ���������� �������� ����� 3 �������...')
-							MainWindow[0] = false
-							wait(3000)
-							reloadScripts()
-						end)
-					end
-				else
-					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" �������##") .. index) then
-						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
-						MainWindow[0] = false
-					end
-				end
-				imgui.Columns(1)
-				imgui.Separator()
-			end
-			imgui.EndChild()
-		end
-		imgui.End()
-		-- Окно настроек стиля
-		if StyleWindow[0] then
-			imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
-			imgui.Begin(fa.GEAR .. u8" Настройки стиля", StyleWindow, imgui.WindowFlags.AlwaysAutoResize)
-			imgui.Text(u8"Скругления и отступы:")
-			changed1, styleVars.WindowRounding = imgui.SliderFloat(u8"WindowRounding", styleVars.WindowRounding, 0, 30)
-			changed2, styleVars.FrameRounding = imgui.SliderFloat(u8"FrameRounding", styleVars.FrameRounding, 0, 30)
-			changed3, styleVars.ScrollbarRounding = imgui.SliderFloat(u8"ScrollbarRounding", styleVars.ScrollbarRounding, 0, 30)
-			changed4, styleVars.WindowPaddingX = imgui.SliderFloat(u8"WindowPadding X", styleVars.WindowPaddingX, 0, 30)
-			changed5, styleVars.WindowPaddingY = imgui.SliderFloat(u8"WindowPadding Y", styleVars.WindowPaddingY, 0, 30)
-			changed6, styleVars.FramePaddingX = imgui.SliderFloat(u8"FramePadding X", styleVars.FramePaddingX, 0, 30)
-			changed7, styleVars.FramePaddingY = imgui.SliderFloat(u8"FramePadding Y", styleVars.FramePaddingY, 0, 30)
-			changed8, styleVars.ItemSpacingX = imgui.SliderFloat(u8"ItemSpacing X", styleVars.ItemSpacingX, 0, 30)
-			changed9, styleVars.ItemSpacingY = imgui.SliderFloat(u8"ItemSpacing Y", styleVars.ItemSpacingY, 0, 30)
-			if imgui.Button(u8"Применить") then
-				imgui.GetStyle().WindowRounding = styleVars.WindowRounding
-				imgui.GetStyle().FrameRounding = styleVars.FrameRounding
-				imgui.GetStyle().ScrollbarRounding = styleVars.ScrollbarRounding
-				imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
-				imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
-				imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
-			end
-			imgui.End()
-		end
+        imgui.SetNextWindowSize(imgui.ImVec2(1000, 600), imgui.Cond.FirstUseEver)
+        imgui.Begin(fa.GEAR .." MONETMOBILE Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
+        imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+        -- Кнопка-шестерёнка справа сверху
+        imgui.SameLine(imgui.GetWindowWidth() - 36)
+        if imgui.Button(fa.GEAR .. "##style") then
+            StyleWindow[0] = not StyleWindow[0]
+        end
+        if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
+            imgui.Columns(3)
+            imgui.CenterColumnText(u8" ")
+            imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
+            imgui.NextColumn()
+            imgui.CenterColumnText(u8" ")
+            imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
+            imgui.NextColumn()
+            imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+            imgui.CenterColumnText(u8(""))
+            imgui.Columns(1)
+            imgui.Separator()
+            for index, value in ipairs(support_scripts) do
+                imgui.Columns(3)
+                imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
+                imgui.NextColumn()
+                imgui.CenterColumnText(u8(value.info))	
+                imgui.NextColumn()
+                if doesFileExist(dir .. '/' .. value.name .. '.lua') then
+                    if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" ##") .. index) then
+                        os.remove(dir .. '/' .. value.name .. '.lua')
+                        lua_thread.create(function ()
+                            msg(' ' .. value.name .. '.lua  !    3 �������...')
+                            MainWindow[0] = false
+                            wait(3000)
+                            reloadScripts()
+                        end)
+                    end
+                else
+                    if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" ##") .. index) then
+                        downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
+                        MainWindow[0] = false
+                    end
+                end
+                imgui.Columns(1)
+                imgui.Separator()
+            end
+            imgui.EndChild()
+        end
+        imgui.End()
+        -- Окно настроек стиля
+        if StyleWindow[0] then
+            imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
+            imgui.Begin(fa.GEAR .. u8" Настройки стиля", StyleWindow, imgui.WindowFlags.AlwaysAutoResize)
+            imgui.Text(u8"Скругления и отступы:")
+            changed1, styleVars.WindowRounding = imgui.SliderFloat(u8"WindowRounding", styleVars.WindowRounding, 0, 30)
+            changed2, styleVars.FrameRounding = imgui.SliderFloat(u8"FrameRounding", styleVars.FrameRounding, 0, 30)
+            changed3, styleVars.ScrollbarRounding = imgui.SliderFloat(u8"ScrollbarRounding", styleVars.ScrollbarRounding, 0, 30)
+            changed4, styleVars.WindowPaddingX = imgui.SliderFloat(u8"WindowPadding X", styleVars.WindowPaddingX, 0, 30)
+            changed5, styleVars.WindowPaddingY = imgui.SliderFloat(u8"WindowPadding Y", styleVars.WindowPaddingY, 0, 30)
+            changed6, styleVars.FramePaddingX = imgui.SliderFloat(u8"FramePadding X", styleVars.FramePaddingX, 0, 30)
+            changed7, styleVars.FramePaddingY = imgui.SliderFloat(u8"FramePadding Y", styleVars.FramePaddingY, 0, 30)
+            changed8, styleVars.ItemSpacingX = imgui.SliderFloat(u8"ItemSpacing X", styleVars.ItemSpacingX, 0, 30)
+            changed9, styleVars.ItemSpacingY = imgui.SliderFloat(u8"ItemSpacing Y", styleVars.ItemSpacingY, 0, 30)
+            if imgui.Button(u8"Применить") then
+                imgui.GetStyle().WindowRounding = styleVars.WindowRounding
+                imgui.GetStyle().FrameRounding = styleVars.FrameRounding
+                imgui.GetStyle().ScrollbarRounding = styleVars.ScrollbarRounding
+                imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
+                imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
+                imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
+            end
+            imgui.End()
+        end
     end
 )
 
