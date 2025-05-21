@@ -8,6 +8,7 @@ local imgui = require('mimgui')
 local fa = require('fAwesome6_solid')
 local sizeX, sizeY = getScreenResolution()
 local MainWindow = imgui.new.bool()
+local StyleWindow = imgui.new.bool(false)
 
 function isMonetLoader() 
 	return MONET_VERSION ~= nil 
@@ -255,7 +256,7 @@ imgui.OnFrame(
         imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
         -- Кнопка-шестерёнка в левом верхнем углу
         if imgui.Button(fa.GEAR .. "##style") then
-            -- StyleWindow[0] = not StyleWindow[0]
+            StyleWindow[0] = not StyleWindow[0]
         end
         if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
             imgui.Columns(3)
@@ -297,6 +298,12 @@ imgui.OnFrame(
             imgui.EndChild()
         end
         imgui.End()
+        -- Пустое окно настроек
+        if StyleWindow[0] then
+            imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
+            imgui.Begin(fa.GEAR .. u8" Настройки", StyleWindow, imgui.WindowFlags.AlwaysAutoResize)
+            imgui.End()
+        end
     end
 )
 
