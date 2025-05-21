@@ -5,7 +5,7 @@ script_author("MONETMOBILE")
 script_version("1.0")
 
 require("lib.moonloader")
-require('encoding').default = 'CP1251'
+-- require('encoding').default = 'CP1251'
 local u8 = require('encoding').UTF8
 local ffi = require('ffi')
 local effil = require('effil')
