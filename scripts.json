@@ -1,9 +1,9 @@
 [
     {
-        "name": "MonetFlex v1 ",
+        "name": "Installer",
         "ver": "1.0 Free",
         "author": "MONETMOBILE",
-        "link": "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/script/MonetFlex%20v1.lua",
+        "link": "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/Installer.lua",
         "img": "",
         "platform": "MOBILE",
         "info": ""
@@ -18,10 +18,10 @@
         "info": ""
     },
     {
-        "name": "Installer",
+        "name": "MonetFlex v1 ",
         "ver": "1.0 Free",
         "author": "MONETMOBILE",
-        "link": "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/Installer.lua",
+        "link": "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/script/MonetFlex%20v1.lua",
         "img": "",
         "platform": "MOBILE",
         "info": ""
