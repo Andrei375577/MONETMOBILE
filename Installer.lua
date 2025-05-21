@@ -33,7 +33,7 @@ function main()
     sampRegisterChatCommand('install', get_all_scripts)
 
     repeat wait(0) until sampIsLocalPlayerSpawned()
-    msg('��� ����-��������� ��������/�������� ����������� ������� {00ccff}/monet')
+    msg('Для установки/удаления используйте команду {00ccff}/install')
 
     wait(-1)
 
@@ -133,19 +133,19 @@ function downloadFileFromUrlToPath(url, path)
 				--print(("���������� %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				lua_thread.create(function ()
-					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
+					msg('Файл ' .. path:gsub(dir .. '/','') .. ' успешно загружен! Перезагрузка скриптов через 3 секунды...')
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg('������ ��������: ' .. pos)
+				msg('Ошибка загрузки: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				lua_thread.create(function ()
-					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
+					msg('Файл ' .. path:gsub(dir .. '/','') .. ' успешно загружен! Перезагрузка скриптов через 3 секунды...')
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -169,7 +169,7 @@ function get_all_scripts()
 					sort()
 				end
 			elseif type == "error" then
-				msg('������ ��������: ' .. pos)
+				msg('Ошибка: ' .. pos)
 			end
 		end)
 	else
@@ -185,16 +185,16 @@ function get_all_scripts()
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			msg("������: ���� �� ����������")
+			msg("Ошибка: файл не существует")
 			return nil
 		end
 		local file = io.open(filePath, "r")
 		local content = file:read("*a")
 		file:close()
-		local cjson = require("cjson") -- ��� "cjson"
+		local cjson = require("cjson") --  "cjson"
 		local status, jsonData = pcall(cjson.decode, content)
 		if not status then
-			msg("������: �������� ������ JSON: " .. tostring(err))
+			msg("Ошибка: не удалось разобрать JSON: " .. tostring(err))
 			return nil
 		end
 		return jsonData
@@ -335,7 +335,7 @@ imgui.OnFrame(
                         if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" ##") .. index) then
                             os.remove(dir .. '/' .. value.name .. '.lua')
                             lua_thread.create(function ()
-                                msg(' ' .. value.name .. '.lua  !    3 ...')
+                                msg('Файл ' .. value.name .. '.lua удалён! Перезагрузка скриптов через 3 секунды...')
                                 MainWindow[0] = false
                                 wait(3000)
                                 reloadScripts()
