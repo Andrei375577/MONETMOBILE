@@ -315,7 +315,7 @@ imgui.OnFrame(
 			imgui.Separator()
 			for index, value in ipairs(support_scripts) do
 				imgui.Columns(3)
-				imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
+				imgui.CenterColumnText(u8(value.name .. ' [' .. value.ver .. ']'))	
 				imgui.NextColumn()
 				imgui.CenterColumnText(u8(value.info))	
 				imgui.NextColumn()
