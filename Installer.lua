@@ -260,14 +260,14 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
 			imgui.Columns(3)
-			imgui.CenterColumnText(u8"Название и версия")
+			imgui.CenterColumnText("Название и версия")
 			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
 			imgui.NextColumn()
-			imgui.CenterColumnText(u8"Краткое описание")
+			imgui.CenterColumnText("Краткое описание")
 			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
 			imgui.NextColumn()
 			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-			imgui.CenterColumnText(u8("Действия"))
+			imgui.CenterColumnText("Действия")
 			imgui.Columns(1)
 			imgui.Separator()
 			for index, value in ipairs(support_scripts) do
