@@ -8,19 +8,6 @@ local imgui = require('mimgui')
 local fa = require('fAwesome6_solid')
 local sizeX, sizeY = getScreenResolution()
 local MainWindow = imgui.new.bool()
-local StyleWindow = imgui.new.bool(false)
-
-local styleVars = {
-    WindowRounding = imgui.GetStyle().WindowRounding,
-    FrameRounding = imgui.GetStyle().FrameRounding,
-    ScrollbarRounding = imgui.GetStyle().ScrollbarRounding,
-    WindowPaddingX = imgui.GetStyle().WindowPadding.x,
-    WindowPaddingY = imgui.GetStyle().WindowPadding.y,
-    FramePaddingX = imgui.GetStyle().FramePadding.x,
-    FramePaddingY = imgui.GetStyle().FramePadding.y,
-    ItemSpacingX = imgui.GetStyle().ItemSpacing.x,
-    ItemSpacingY = imgui.GetStyle().ItemSpacing.y,
-}
 
 function isMonetLoader() 
 	return MONET_VERSION ~= nil 
@@ -230,7 +217,7 @@ imgui.OnInitialize(function()
     end
     imgui.SwitchContext()
 
-    --   
+    -- Исходные значения стиля
     imgui.GetStyle().WindowPadding = imgui.ImVec2(8 * MONET_DPI_SCALE, 8 * MONET_DPI_SCALE)
     imgui.GetStyle().FramePadding = imgui.ImVec2(6 * MONET_DPI_SCALE, 6 * MONET_DPI_SCALE)
     imgui.GetStyle().ItemSpacing = imgui.ImVec2(6 * MONET_DPI_SCALE, 6 * MONET_DPI_SCALE)
@@ -238,14 +225,12 @@ imgui.OnInitialize(function()
     imgui.GetStyle().FrameRounding = 10 * MONET_DPI_SCALE
     imgui.GetStyle().ScrollbarRounding = 10 * MONET_DPI_SCALE
 
-    --   
     imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
     imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
 
-    --    
-    local baseColor = imgui.ImVec4(0.15, 0.15, 0.17, 1.00) --  
-    local accentColor = imgui.ImVec4(0.40, 0.10, 0.70, 1.00) --  
-    local hoverColor = imgui.ImVec4(0.60, 0.20, 0.90, 1.00) --  
+    local baseColor = imgui.ImVec4(0.15, 0.15, 0.17, 1.00)
+    local accentColor = imgui.ImVec4(0.40, 0.10, 0.70, 1.00)
+    local hoverColor = imgui.ImVec4(0.60, 0.20, 0.90, 1.00)
 
     imgui.GetStyle().Colors[imgui.Col.WindowBg]               = baseColor
     imgui.GetStyle().Colors[imgui.Col.FrameBg]                = baseColor
@@ -271,7 +256,7 @@ imgui.OnFrame(
         -- Кнопка-шестерёнка справа сверху
         imgui.SameLine(imgui.GetWindowWidth() - 36)
         if imgui.Button(fa.GEAR .. "##style") then
-            StyleWindow[0] = not StyleWindow[0]
+            -- StyleWindow[0] = not StyleWindow[0]
         end
         if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
             imgui.Columns(3)
@@ -313,30 +298,6 @@ imgui.OnFrame(
             imgui.EndChild()
         end
         imgui.End()
-        -- Окно настроек стиля
-        if StyleWindow[0] then
-            imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
-            imgui.Begin(fa.GEAR .. u8" Настройки стиля", StyleWindow, imgui.WindowFlags.AlwaysAutoResize)
-            imgui.Text(u8"Скругления и отступы:")
-            changed1, styleVars.WindowRounding = imgui.SliderFloat(u8"WindowRounding", styleVars.WindowRounding, 0, 30)
-            changed2, styleVars.FrameRounding = imgui.SliderFloat(u8"FrameRounding", styleVars.FrameRounding, 0, 30)
-            changed3, styleVars.ScrollbarRounding = imgui.SliderFloat(u8"ScrollbarRounding", styleVars.ScrollbarRounding, 0, 30)
-            changed4, styleVars.WindowPaddingX = imgui.SliderFloat(u8"WindowPadding X", styleVars.WindowPaddingX, 0, 30)
-            changed5, styleVars.WindowPaddingY = imgui.SliderFloat(u8"WindowPadding Y", styleVars.WindowPaddingY, 0, 30)
-            changed6, styleVars.FramePaddingX = imgui.SliderFloat(u8"FramePadding X", styleVars.FramePaddingX, 0, 30)
-            changed7, styleVars.FramePaddingY = imgui.SliderFloat(u8"FramePadding Y", styleVars.FramePaddingY, 0, 30)
-            changed8, styleVars.ItemSpacingX = imgui.SliderFloat(u8"ItemSpacing X", styleVars.ItemSpacingX, 0, 30)
-            changed9, styleVars.ItemSpacingY = imgui.SliderFloat(u8"ItemSpacing Y", styleVars.ItemSpacingY, 0, 30)
-            if imgui.Button(u8"Применить") then
-                imgui.GetStyle().WindowRounding = styleVars.WindowRounding
-                imgui.GetStyle().FrameRounding = styleVars.FrameRounding
-                imgui.GetStyle().ScrollbarRounding = styleVars.ScrollbarRounding
-                imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
-                imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
-                imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
-            end
-            imgui.End()
-        end
     end
 )
 
