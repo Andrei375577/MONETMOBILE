@@ -1,20 +1,25 @@
+---@diagnostic disable: undefined-global, need-check-nil, lowercase-global, cast-local-type, unused-local
+
+script_name("MONETMOBILE Installer")
+script_author("MONETMOBILE")
+script_version("1.0")
+
 require("lib.moonloader")
 require('encoding').default = 'CP1251'
 local u8 = require('encoding').UTF8
 local ffi = require('ffi')
 local effil = require('effil')
 local memory = require('memory')
-local imgui = require('mimgui')
-local fa = require('fAwesome6_solid')
-local sizeX, sizeY = getScreenResolution()
-local MainWindow = imgui.new.bool()
-local StyleWindow = imgui.new.bool(false)
-local styleSelect = imgui.new.int(0)
 
 function isMonetLoader() 
 	return MONET_VERSION ~= nil 
 end
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
+
+local imgui = require('mimgui')
+local fa = require('fAwesome6_solid')
+local sizeX, sizeY = getScreenResolution()
+local MainWindow = imgui.new.bool()
 
 
 local dir = getWorkingDirectory():gsub('\\','/')
@@ -34,7 +39,7 @@ function main()
     sampRegisterChatCommand('install', get_all_scripts)
 
     repeat wait(0) until sampIsLocalPlayerSpawned()
-    msg('Для установки/удаления используйте команду {00ccff}/install')
+    msg('��� ����-��������� ��������/�������� ����������� ������� {00ccff}/install')
 
     wait(-1)
 
@@ -134,19 +139,19 @@ function downloadFileFromUrlToPath(url, path)
 				--print(("���������� %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				lua_thread.create(function ()
-					msg('Файл ' .. path:gsub(dir .. '/','') .. ' успешно загружен! Перезагрузка скриптов через 3 секунды...')
+					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg('Ошибка загрузки: ' .. pos)
+				msg('������ ��������: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				lua_thread.create(function ()
-					msg('Файл ' .. path:gsub(dir .. '/','') .. ' успешно загружен! Перезагрузка скриптов через 3 секунды...')
+					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -170,7 +175,7 @@ function get_all_scripts()
 					sort()
 				end
 			elseif type == "error" then
-				msg('Ошибка: ' .. pos)
+				msg('������ ��������: ' .. pos)
 			end
 		end)
 	else
@@ -186,16 +191,16 @@ function get_all_scripts()
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			msg("Ошибка: файл не существует")
+			msg("������: ���� �� ����������")
 			return nil
 		end
 		local file = io.open(filePath, "r")
 		local content = file:read("*a")
 		file:close()
-		local cjson = require("cjson") --  "cjson"
+		local cjson = require("cjson") -- ��� "cjson"
 		local status, jsonData = pcall(cjson.decode, content)
 		if not status then
-			msg("Ошибка: не удалось разобрать JSON: " .. tostring(err))
+			msg("������: �������� ������ JSON: " .. tostring(err))
 			return nil
 		end
 		return jsonData
@@ -294,124 +299,59 @@ end)
 imgui.OnFrame(
     function() return MainWindow[0] end,
     function(player)
-        imgui.SetNextWindowSize(imgui.ImVec2(1000, 600), imgui.Cond.FirstUseEver)
-        imgui.Begin(fa.GEAR .." MONETMOBILE Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
-        imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
-        -- Кнопка-шестерёнка в левом верхнем углу
-        if imgui.Button(fa.GEAR .. "##style") then
-            StyleWindow[0] = not StyleWindow[0]
-        end
-        if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
-            if StyleWindow[0] then
-                imgui.Separator()
-                imgui.BeginChild('##settings', imgui.ImVec2(640 * MONET_DPI_SCALE, 300 * MONET_DPI_SCALE), true, imgui.WindowFlags.AlwaysUseWindowPadding)
-                imgui.TextColored(imgui.ImVec4(1,0.8,0,1), u8"Режим настроек активирован!")
-                imgui.Spacing()
-                imgui.Text(u8"Здесь вы можете выбрать стиль интерфейса:")
-                imgui.Spacing()
-                local styles = {"Стандартный (тёмный)", "Белый"}
-                imgui.Combo(u8"Стиль интерфейса", styleSelect, styles, #styles)
-                if imgui.Button(u8"Применить стиль") then
-                    if styleSelect[0] == 0 then
-                        -- Стандартный (тёмный)
-                        imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 0.80)
-                        imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
-                        imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.20, 0.20, 0.20, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.47, 0.47, 0.47, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
-                    elseif styleSelect[0] == 1 then
-                        -- Белый стиль
-                        imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(1.00, 1.00, 1.00, 0.80)
-                        imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
-                        imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.95, 0.95, 0.95, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.85, 0.85, 0.85, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.90, 0.90, 0.90, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.90, 0.90, 0.90, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.95, 0.95, 0.95, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.85, 0.85, 0.85, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.95, 0.95, 0.95, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.85, 0.85, 0.85, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.95, 0.95, 0.95, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.85, 0.85, 0.85, 1.00)
-                        imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.80, 0.80, 0.80, 1.00)
-                    end
-                end
-                imgui.Spacing()
-                imgui.Text(u8"Здесь будут ваши настройки...")
-                if imgui.Button(u8"Тестовая кнопка") then
-                    msg('Кнопка работает!')
-                end
-                imgui.EndChild()
-                imgui.Separator()
-            else
-                imgui.Columns(3)
-                imgui.CenterColumnText(u8" ")
-                imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
-                imgui.NextColumn()
-                imgui.CenterColumnText(u8" ")
-                imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
-                imgui.NextColumn()
-                imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-                imgui.CenterColumnText(u8(""))
-                imgui.Columns(1)
-                imgui.Separator()
-                for index, value in ipairs(support_scripts) do
-                    imgui.Columns(3)
-                    imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
-                    imgui.NextColumn()
-                    imgui.CenterColumnText(u8(value.info))	
-                    imgui.NextColumn()
-                    if doesFileExist(dir .. '/' .. value.name .. '.lua') then
-                        if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" ##") .. index) then
-                            os.remove(dir .. '/' .. value.name .. '.lua')
-                            lua_thread.create(function ()
-                                msg('Файл ' .. value.name .. '.lua удалён! Перезагрузка скриптов через 3 секунды...')
-                                MainWindow[0] = false
-                                wait(3000)
-                                reloadScripts()
-                            end)
-                        end
-                    else
-                        if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" ##") .. index) then
-                            downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
-                            MainWindow[0] = false
-                        end
-                    end
-                    imgui.Columns(1)
-                    imgui.Separator()
-                end
-            end
-            imgui.EndChild()
-        end
-        imgui.End()
+		imgui.Begin(fa.GEAR .." MTG Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
+			imgui.Columns(3)
+			imgui.CenterColumnText(u8"�������� � ������")
+			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
+			imgui.NextColumn()
+			imgui.CenterColumnText(u8"������� ��������")
+			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
+			imgui.NextColumn()
+			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+			imgui.CenterColumnText(u8("��������"))
+			imgui.Columns(1)
+			imgui.Separator()
+			for index, value in ipairs(support_scripts) do
+				imgui.Columns(3)
+				imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
+				imgui.NextColumn()
+				imgui.CenterColumnText(u8(value.info))	
+				imgui.NextColumn()
+				local script_path = dir .. '/' .. value.name .. '.lua'
+				if doesFileExist(script_path) then
+					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" Удалить##") .. index) then
+						os.remove(script_path)
+						lua_thread.create(function ()
+							msg('Скрипт ' .. value.name .. '.lua успешно удалён! Перезагрузка через 3 секунды...')
+							MainWindow[0] = false
+							wait(3000)
+							reloadScripts()
+						end)
+					end
+					imgui.SameLine()
+					if imgui.CenterColumnButton(u8("Обновить##") .. index) then
+						downloadFileFromUrlToPath(value.link, script_path)
+						MainWindow[0] = false
+					end
+				else
+					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Скачать##") .. index) then
+						downloadFileFromUrlToPath(value.link, script_path)
+						MainWindow[0] = false
+					end
+					imgui.SameLine()
+					if imgui.CenterColumnButton(u8("Обновить##") .. index) then
+						downloadFileFromUrlToPath(value.link, script_path)
+						MainWindow[0] = false
+					end
+				end
+				imgui.Columns(1)
+				imgui.Separator()
+			end
+			imgui.EndChild()
+		end
+		imgui.End()
     end
 )
 
