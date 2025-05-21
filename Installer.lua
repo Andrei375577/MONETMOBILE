@@ -299,8 +299,9 @@ imgui.OnFrame(
         end
         imgui.End()
         -- Пустое окно настроек
+        imgui.SetNextWindowPos(imgui.ImVec2(100, 100), imgui.Cond.FirstUseEver)
+        imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
         if StyleWindow[0] then
-            imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
             imgui.Begin(fa.GEAR .. u8" Настройки", StyleWindow, imgui.WindowFlags.AlwaysAutoResize)
             imgui.End()
         end
