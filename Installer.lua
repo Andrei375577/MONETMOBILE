@@ -31,7 +31,7 @@ local all_scripts, support_scripts = {}, {}
 function main()
 	if not isSampLoaded() or not isSampfuncsLoaded() then return end
 	while not isSampAvailable() do wait(0) end
-	sampRegisterChatCommand('monet', get_all_scripts)
+	sampRegisterChatCommand('inastall', get_all_scripts)
 	repeat wait(0) until sampIsLocalPlayerSpawned()
 	msg('Для установки/удаления используйте команду {00ccff}/monet')
 	wait(-1)
