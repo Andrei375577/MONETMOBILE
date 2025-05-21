@@ -6,14 +6,28 @@ local effil = require('effil')
 local memory = require('memory')
 local imgui = require('mimgui')
 local fa = require('fAwesome6_solid')
-
 local sizeX, sizeY = getScreenResolution()
 local MainWindow = imgui.new.bool()
+local StyleWindow = imgui.new.bool(false)
+local styleConfigFile = configDirectory .. "/style.json"
 
-local function isMonetLoader()
-	return MONET_VERSION ~= nil
+local styleVars = {
+    WindowRounding = imgui.GetStyle().WindowRounding,
+    FrameRounding = imgui.GetStyle().FrameRounding,
+    ScrollbarRounding = imgui.GetStyle().ScrollbarRounding,
+    WindowPaddingX = imgui.GetStyle().WindowPadding.x,
+    WindowPaddingY = imgui.GetStyle().WindowPadding.y,
+    FramePaddingX = imgui.GetStyle().FramePadding.x,
+    FramePaddingY = imgui.GetStyle().FramePadding.y,
+    ItemSpacingX = imgui.GetStyle().ItemSpacing.x,
+    ItemSpacingY = imgui.GetStyle().ItemSpacing.y,
+}
+
+function isMonetLoader() 
+	return MONET_VERSION ~= nil 
 end
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
+
 
 local dir = getWorkingDirectory():gsub('\\','/')
 local configDirectory = dir .. '/MONETMOBILE Installer'
@@ -21,126 +35,130 @@ if not doesDirectoryExist(configDirectory) then
 	createDirectory(configDirectory)
 end
 
-local all_scripts, support_scripts = {}, {}
+local all_scripts = {}
+local support_scripts = {}
 
 function main()
-	if not isSampLoaded() or not isSampfuncsLoaded() then return end
-	while not isSampAvailable() do wait(0) end
-	sampRegisterChatCommand('inastall', get_all_scripts)
-	repeat wait(0) until sampIsLocalPlayerSpawned()
-	msg('Для установки/удаления используйте команду {00ccff}/monet')
-	wait(-1)
+
+    if not isSampLoaded() or not isSampfuncsLoaded() then return end
+    while not isSampAvailable() do wait(0) end
+
+    sampRegisterChatCommand('install', get_all_scripts)
+
+    repeat wait(0) until sampIsLocalPlayerSpawned()
+    msg('��� ����-��������� ��������/�������� ����������� ������� {00ccff}/monet')
+
+    wait(-1)
+
 end
 
 function msg(text)
-	sampAddChatMessage('{00ccff}[MONETMOBILE Installer] {ffffff}' .. text, -1)
+    sampAddChatMessage('{00ccff}[MONETMOBILE Installer] {ffffff}' .. text, -1)
 end
-
-local function readJsonFile(filePath)
-	if not doesFileExist(filePath) then
-		msg("Ошибка: файл не найден")
-		return nil
-	end
-	local file = io.open(filePath, "r")
-	local content = file:read("*a")
-	file:close()
-	local cjson = require("cjson")
-	local status, jsonData = pcall(cjson.decode, content)
-	if not status then
-		msg("Ошибка: не удалось прочитать JSON: " .. tostring(jsonData))
-		return nil
-	end
-	return jsonData
-end
-
-local function sortScripts()
-	support_scripts = {}
-	for _, value in ipairs(all_scripts) do
-		if tostring(value.platform):find("MOBILE") then
-			table.insert(support_scripts, value)
-		end
-	end
-	MainWindow[0] = true
-end
-
 function downloadToFile(url, path, callback, progressInterval)
 	callback = callback or function() end
 	progressInterval = progressInterval or 0.1
+
 	local effil = require("effil")
 	local progressChannel = effil.channel(0)
+
 	local runner = effil.thread(function(url, path)
-		local http = require("socket.http")
-		local ltn = require("ltn12")
-		local r, c, h = http.request({ method = "HEAD", url = url })
-		if c ~= 200 then return false, c end
-		local total_size = h["content-length"]
-		local f = io.open(path, "wb")
-		if not f then return false, "failed to open file" end
-		local lastProgress = os.clock()
-		local success, res, status_code = pcall(http.request, {
-			method = "GET",
-			url = url,
-			sink = function(chunk, err)
-				local clock = os.clock()
-				if chunk and (not lastProgress or (clock - lastProgress) >= progressInterval) then
-					progressChannel:push("downloading", f:seek("end"), total_size)
-					lastProgress = os.clock()
-				elseif err then
-					progressChannel:push("error", err)
-				end
-				return ltn.sink.file(f)(chunk, err)
-			end,
-		})
-		if not success then return false, res end
-		if not res then return false, status_code end
-		return true, total_size
+	local http = require("socket.http")
+	local ltn = require("ltn12")
+
+	local r, c, h = http.request({
+		method = "HEAD",
+		url = url,
+	})
+
+	if c ~= 200 then
+		return false, c
+	end
+	local total_size = h["content-length"]
+
+	local f = io.open(path, "wb")
+	if not f then
+		return false, "failed to open file"
+	end
+	local success, res, status_code = pcall(http.request, {
+		method = "GET",
+		url = url,
+		sink = function(chunk, err)
+		local clock = os.clock()
+		if chunk and not lastProgress or (clock - lastProgress) >= progressInterval then
+			progressChannel:push("downloading", f:seek("end"), total_size)
+			lastProgress = os.clock()
+		elseif err then
+			progressChannel:push("error", err)
+		end
+
+		return ltn.sink.file(f)(chunk, err)
+		end,
+	})
+
+	if not success then
+		return false, res
+	end
+
+	if not res then
+		return false, status_code
+	end
+
+	return true, total_size
 	end)
 	local thread = runner(url, path)
+
 	local function checkStatus()
-		local tstatus = thread:status()
-		if tstatus == "failed" or tstatus == "completed" then
-			local result, value = thread:get()
-			if result then
-				callback("finished", value)
-			else
-				callback("error", value)
-			end
-			return true
+	local tstatus = thread:status()
+	if tstatus == "failed" or tstatus == "completed" then
+		local result, value = thread:get()
+
+		if result then
+		callback("finished", value)
+		else
+		callback("error", value)
 		end
+
+		return true
 	end
+	end
+
 	lua_thread.create(function()
-		if checkStatus() then return end
-		while thread:status() == "running" do
-			if progressChannel:size() > 0 then
-				local type, pos, total_size = progressChannel:pop()
-				callback(type, pos, total_size)
-			end
-			wait(0)
+	if checkStatus() then
+		return
+	end
+
+	while thread:status() == "running" do
+		if progressChannel:size() > 0 then
+		local type, pos, total_size = progressChannel:pop()
+		callback(type, pos, total_size)
 		end
-		checkStatus()
+		wait(0)
+	end
+
+	checkStatus()
 	end)
 end
-
 function downloadFileFromUrlToPath(url, path)
 	if isMonetLoader() then
 		downloadToFile(url, path, function(type, pos, total_size)
 			if type == "downloading" then
-				-- print(("Загрузка %d/%d"):format(pos, total_size))
+				--print(("���������� %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
-				lua_thread.create(function()
-					msg('Файл ' .. path:gsub(dir .. '/', '') .. ' загружен! Перезагрузка скриптов через 3 секунды...')
+				lua_thread.create(function ()
+					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg('Ошибка загрузки: ' .. pos)
+				msg('������ ��������: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
-				lua_thread.create(function()
-					msg('Файл ' .. path:gsub(dir .. '/', '') .. ' загружен! Перезагрузка скриптов через 3 секунды...')
+				lua_thread.create(function ()
+					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -149,7 +167,6 @@ function downloadFileFromUrlToPath(url, path)
 		end)
 	end
 end
-
 function get_all_scripts()
 	all_scripts = {}
 	support_scripts = {}
@@ -160,99 +177,168 @@ function get_all_scripts()
 		downloadToFile(url, path, function(type, pos, total_size)
 			if type == "finished" then
 				local array = readJsonFile(path)
-				if array then
+				if array ~= nil then
 					all_scripts = array
-					sortScripts()
+					sort()
 				end
 			elseif type == "error" then
-				msg('Ошибка загрузки: ' .. pos)
+				msg('������ ��������: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
-			if status == 6 then
+			if status == 6 then -- ENDDOWNLOADDATA
 				local array = readJsonFile(path)
-				if array then
+				if array ~= nil then
 					all_scripts = array
-					sortScripts()
+					sort()
 				end
 			end
 		end)
 	end
+	function readJsonFile(filePath)
+		if not doesFileExist(filePath) then
+			msg("������: ���� �� ����������")
+			return nil
+		end
+		local file = io.open(filePath, "r")
+		local content = file:read("*a")
+		file:close()
+		local cjson = require("cjson") -- ��� "cjson"
+		local status, jsonData = pcall(cjson.decode, content)
+		if not status then
+			msg("������: �������� ������ JSON: " .. tostring(err))
+			return nil
+		end
+		return jsonData
+	end
+	function sort()
+		for index, value in ipairs(all_scripts) do
+			if tostring(value.platform):find("MOBILE") then
+				table.insert(support_scripts, value)
+			end
+		end
+		MainWindow[0] = true
+	end
+end
+
+local function saveStyle()
+    local file = io.open(styleConfigFile, "w")
+    if file then
+        local cjson = require("cjson")
+        file:write(cjson.encode(styleVars))
+        file:close()
+        msg("Стиль сохранён!")
+    end
+end
+
+local function loadStyle()
+    if doesFileExist(styleConfigFile) then
+        local file = io.open(styleConfigFile, "r")
+        if file then
+            local cjson = require("cjson")
+            local content = file:read("*a")
+            file:close()
+            local status, data = pcall(cjson.decode, content)
+            if status and type(data) == "table" then
+                for k, v in pairs(data) do
+                    styleVars[k] = v
+                end
+            end
+        end
+    end
+    -- применяем стиль
+    imgui.GetStyle().WindowRounding = styleVars.WindowRounding
+    imgui.GetStyle().FrameRounding = styleVars.FrameRounding
+    imgui.GetStyle().ScrollbarRounding = styleVars.ScrollbarRounding
+    imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
+    imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
+    imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
 end
 
 imgui.OnInitialize(function()
-	imgui.GetIO().IniFilename = nil
-	if isMonetLoader() then
-		fa.Init(14 * MONET_DPI_SCALE)
-	else
-		fa.Init()
-	end
-	imgui.SwitchContext()
-	local style = imgui.GetStyle()
-	style.WindowPadding = imgui.ImVec2(8 * MONET_DPI_SCALE, 8 * MONET_DPI_SCALE)
-	style.FramePadding = imgui.ImVec2(6 * MONET_DPI_SCALE, 6 * MONET_DPI_SCALE)
-	style.ItemSpacing = imgui.ImVec2(6 * MONET_DPI_SCALE, 6 * MONET_DPI_SCALE)
-	style.WindowRounding = 12 * MONET_DPI_SCALE
-	style.FrameRounding = 10 * MONET_DPI_SCALE
-	style.ScrollbarRounding = 10 * MONET_DPI_SCALE
-	style.WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
-	style.ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
-	local baseColor = imgui.ImVec4(0.15, 0.15, 0.17, 1.00)
-	local accentColor = imgui.ImVec4(0.40, 0.10, 0.70, 1.00)
-	local hoverColor = imgui.ImVec4(0.60, 0.20, 0.90, 1.00)
-	style.Colors[imgui.Col.WindowBg] = baseColor
-	style.Colors[imgui.Col.FrameBg] = baseColor
-	style.Colors[imgui.Col.FrameBgHovered] = hoverColor
-	style.Colors[imgui.Col.FrameBgActive] = accentColor
-	style.Colors[imgui.Col.TitleBg] = baseColor
-	style.Colors[imgui.Col.TitleBgActive] = accentColor
-	style.Colors[imgui.Col.Button] = accentColor
-	style.Colors[imgui.Col.ButtonHovered] = hoverColor
-	style.Colors[imgui.Col.ButtonActive] = baseColor
-	style.Colors[imgui.Col.Border] = hoverColor
-	style.Colors[imgui.Col.Tab] = baseColor
-	style.Colors[imgui.Col.TabHovered] = hoverColor
-	style.Colors[imgui.Col.TabActive] = accentColor
+    imgui.GetIO().IniFilename = nil
+    if isMonetLoader() then
+        fa.Init(14 * MONET_DPI_SCALE)
+    else
+        fa.Init()
+    end
+    imgui.SwitchContext()
+    loadStyle()
+
+    --   
+    imgui.GetStyle().WindowPadding = imgui.ImVec2(8 * MONET_DPI_SCALE, 8 * MONET_DPI_SCALE)
+    imgui.GetStyle().FramePadding = imgui.ImVec2(6 * MONET_DPI_SCALE, 6 * MONET_DPI_SCALE)
+    imgui.GetStyle().ItemSpacing = imgui.ImVec2(6 * MONET_DPI_SCALE, 6 * MONET_DPI_SCALE)
+    imgui.GetStyle().WindowRounding = 12 * MONET_DPI_SCALE
+    imgui.GetStyle().FrameRounding = 10 * MONET_DPI_SCALE
+    imgui.GetStyle().ScrollbarRounding = 10 * MONET_DPI_SCALE
+
+    --   
+    imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
+
+    --    
+    local baseColor = imgui.ImVec4(0.15, 0.15, 0.17, 1.00) --  
+    local accentColor = imgui.ImVec4(0.40, 0.10, 0.70, 1.00) --  
+    local hoverColor = imgui.ImVec4(0.60, 0.20, 0.90, 1.00) --  
+
+    imgui.GetStyle().Colors[imgui.Col.WindowBg]               = baseColor
+    imgui.GetStyle().Colors[imgui.Col.FrameBg]                = baseColor
+    imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = hoverColor
+    imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = accentColor
+    imgui.GetStyle().Colors[imgui.Col.TitleBg]                = baseColor
+    imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = accentColor
+    imgui.GetStyle().Colors[imgui.Col.Button]                 = accentColor
+    imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = hoverColor
+    imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = baseColor
+    imgui.GetStyle().Colors[imgui.Col.Border]                 = hoverColor
+    imgui.GetStyle().Colors[imgui.Col.Tab]                    = baseColor
+    imgui.GetStyle().Colors[imgui.Col.TabHovered]             = hoverColor
+    imgui.GetStyle().Colors[imgui.Col.TabActive]              = accentColor
 end)
 
 imgui.OnFrame(
-	function() return MainWindow[0] end,
-	function(player)
+    function() return MainWindow[0] end,
+    function(player)
 		imgui.Begin(fa.GEAR .." MONETMOBILE Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		-- Кнопка-шестерёнка справа сверху
+		imgui.SameLine(imgui.GetWindowWidth() - 36)
+		if imgui.Button(fa.GEAR .. "##style") then
+			StyleWindow[0] = not StyleWindow[0]
+		end
 		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
 			imgui.Columns(3)
-			imgui.CenterColumnText(u8"Название и версия")
+			imgui.CenterColumnText(u8"�������� � ������")
 			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
 			imgui.NextColumn()
-			imgui.CenterColumnText(u8"Описание скрипта")
+			imgui.CenterColumnText(u8"������� ��������")
 			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
 			imgui.NextColumn()
 			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-			imgui.CenterColumnText(u8("Действие"))
+			imgui.CenterColumnText(u8("��������"))
 			imgui.Columns(1)
 			imgui.Separator()
 			for index, value in ipairs(support_scripts) do
 				imgui.Columns(3)
-				imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))
+				imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
 				imgui.NextColumn()
-				imgui.CenterColumnText(u8(value.info))
+				imgui.CenterColumnText(u8(value.info))	
 				imgui.NextColumn()
-				local scriptPath = dir .. '/' .. value.name .. '.lua'
-				if doesFileExist(scriptPath) then
-					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" Удалить##") .. index) then
-						os.remove(scriptPath)
-						lua_thread.create(function()
-							msg('Файл ' .. value.name .. '.lua удалён! Перезагрузка скриптов через 3 секунды...')
+				if doesFileExist(dir .. '/' .. value.name .. '.lua') then
+					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" �������##") .. index) then
+						os.remove(dir .. '/' .. value.name .. '.lua')
+						lua_thread.create(function ()
+							msg('������ ' .. value.name .. '.lua ������� �����! ���������� �������� ����� 3 �������...')
 							MainWindow[0] = false
 							wait(3000)
 							reloadScripts()
 						end)
 					end
 				else
-					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Скачать##") .. index) then
-						downloadFileFromUrlToPath(value.link, scriptPath)
+					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" �������##") .. index) then
+						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
 						MainWindow[0] = false
 					end
 				end
@@ -262,59 +348,103 @@ imgui.OnFrame(
 			imgui.EndChild()
 		end
 		imgui.End()
-	end
+		-- Окно настроек стиля
+		if StyleWindow[0] then
+			imgui.SetNextWindowSize(imgui.ImVec2(400, 350), imgui.Cond.FirstUseEver)
+			imgui.Begin(fa.GEAR .. u8" Настройки стиля", StyleWindow, imgui.WindowFlags.AlwaysAutoResize)
+			imgui.Text(u8"Скругления и отступы:")
+			changed1, styleVars.WindowRounding = imgui.SliderFloat(u8"WindowRounding", styleVars.WindowRounding, 0, 30)
+			changed2, styleVars.FrameRounding = imgui.SliderFloat(u8"FrameRounding", styleVars.FrameRounding, 0, 30)
+			changed3, styleVars.ScrollbarRounding = imgui.SliderFloat(u8"ScrollbarRounding", styleVars.ScrollbarRounding, 0, 30)
+			changed4, styleVars.WindowPaddingX = imgui.SliderFloat(u8"WindowPadding X", styleVars.WindowPaddingX, 0, 30)
+			changed5, styleVars.WindowPaddingY = imgui.SliderFloat(u8"WindowPadding Y", styleVars.WindowPaddingY, 0, 30)
+			changed6, styleVars.FramePaddingX = imgui.SliderFloat(u8"FramePadding X", styleVars.FramePaddingX, 0, 30)
+			changed7, styleVars.FramePaddingY = imgui.SliderFloat(u8"FramePadding Y", styleVars.FramePaddingY, 0, 30)
+			changed8, styleVars.ItemSpacingX = imgui.SliderFloat(u8"ItemSpacing X", styleVars.ItemSpacingX, 0, 30)
+			changed9, styleVars.ItemSpacingY = imgui.SliderFloat(u8"ItemSpacing Y", styleVars.ItemSpacingY, 0, 30)
+			if imgui.Button(u8"Применить") then
+				imgui.GetStyle().WindowRounding = styleVars.WindowRounding
+				imgui.GetStyle().FrameRounding = styleVars.FrameRounding
+				imgui.GetStyle().ScrollbarRounding = styleVars.ScrollbarRounding
+				imgui.GetStyle().WindowPadding = imgui.ImVec2(styleVars.WindowPaddingX, styleVars.WindowPaddingY)
+				imgui.GetStyle().FramePadding = imgui.ImVec2(styleVars.FramePaddingX, styleVars.FramePaddingY)
+				imgui.GetStyle().ItemSpacing = imgui.ImVec2(styleVars.ItemSpacingX, styleVars.ItemSpacingY)
+			end
+			imgui.SameLine()
+			if imgui.Button(u8"Сохранить") then
+				saveStyle()
+			end
+			imgui.SameLine()
+			if imgui.Button(u8"Загрузить") then
+				loadStyle()
+			end
+			imgui.End()
+		end
+    end
 )
 
 function imgui.CenterText(text)
-	local width = imgui.GetWindowWidth()
-	local calc = imgui.CalcTextSize(text)
-	imgui.SetCursorPosX(width / 2 - calc.x / 2)
-	imgui.Text(text)
+    local width = imgui.GetWindowWidth()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+    imgui.Text(text)
 end
 function imgui.CenterTextDisabled(text)
-	local width = imgui.GetWindowWidth()
-	local calc = imgui.CalcTextSize(text)
-	imgui.SetCursorPosX(width / 2 - calc.x / 2)
-	imgui.TextDisabled(text)
+    local width = imgui.GetWindowWidth()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+    imgui.TextDisabled(text)
 end
 function imgui.CenterColumnText(text)
-	imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
-	imgui.Text(text)
+    imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+    imgui.Text(text)
 end
 function imgui.CenterColumnTextDisabled(text)
-	imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
-	imgui.TextDisabled(text)
+    imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+    imgui.TextDisabled(text)
 end
 function imgui.CenterColumnColorText(imgui_RGBA, text)
-	imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+    imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
 	imgui.TextColored(imgui_RGBA, text)
 end
 function imgui.CenterButton(text)
-	local width = imgui.GetWindowWidth()
-	local calc = imgui.CalcTextSize(text)
-	imgui.SetCursorPosX(width / 2 - calc.x / 2)
-	return imgui.Button(text)
+    local width = imgui.GetWindowWidth()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+	if imgui.Button(text) then
+		return true
+	else
+		return false
+	end
 end
 function imgui.CenterColumnButton(text)
 	if text:find('(.+)##(.+)') then
-		local text1 = text:match('(.+)##(.+)')
+		local text1, text2 = text:match('(.+)##(.+)')
 		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text1).x / 2)
 	else
 		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
 	end
-	return imgui.Button(text)
+    if imgui.Button(text) then
+		return true
+	else
+		return false
+	end
 end
 function imgui.CenterColumnSmallButton(text)
 	if text:find('(.+)##(.+)') then
-		local text1 = text:match('(.+)##(.+)')
+		local text1, text2 = text:match('(.+)##(.+)')
 		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text1).x / 2)
 	else
 		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
 	end
-	return imgui.SmallButton(text)
+    if imgui.SmallButton(text) then
+		return true
+	else
+		return false
+	end
 end
 function imgui.GetMiddleButtonX(count)
-	local width = imgui.GetWindowContentRegionWidth()
-	local space = imgui.GetStyle().ItemSpacing.x
-	return count == 1 and width or width / count - ((space * (count - 1)) / count)
+    local width = imgui.GetWindowContentRegionWidth() 
+    local space = imgui.GetStyle().ItemSpacing.x
+    return count == 1 and width or width/count - ((space * (count-1)) / count)
 end
