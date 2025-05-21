@@ -46,7 +46,7 @@ function main()
 end
 
 function msg(text)
-    sampAddChatMessage('{00ccff}[MONETMOBILE Installer] {ffffff}' .. text, -1)
+    sampAddChatMessage('{00ccff}[MONETMOBILE Installer] {ffffff}' .. u8:decode(text), -1)
 end
 function downloadToFile(url, path, callback, progressInterval)
 	callback = callback or function() end
