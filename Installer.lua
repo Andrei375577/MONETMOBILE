@@ -1,8 +1,3 @@
-script_name("MONETMOBILE Installer")
-script_author("MONETMOBILE")
-script_version("1.0")
-script_description('Script for installing other scripts')
-
 require("lib.moonloader")
 require('encoding').default = 'CP1251'
 local u8 = require('encoding').UTF8
