@@ -39,7 +39,7 @@ function main()
     sampRegisterChatCommand('install', get_all_scripts)
 
     repeat wait(0) until sampIsLocalPlayerSpawned()
-    msg('��� ����-��������� ��������/�������� ����������� ������� {00ccff}/install')
+    msg(u8('Для установки/обновления используйте команду {00ccff}/install'))
 
     wait(-1)
 
@@ -139,19 +139,19 @@ function downloadFileFromUrlToPath(url, path)
 				--print(("���������� %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				lua_thread.create(function ()
-					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
+					msg(u8('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...'))
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg('������ ��������: ' .. pos)
+				msg(u8('Ошибка загрузки: ' .. pos))
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				lua_thread.create(function ()
-					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
+					msg(u8('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...'))
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -175,7 +175,7 @@ function get_all_scripts()
 					sort()
 				end
 			elseif type == "error" then
-				msg('������ ��������: ' .. pos)
+				msg(u8('Ошибка: не удалось прочитать JSON: ' .. tostring(pos)))
 			end
 		end)
 	else
@@ -191,16 +191,16 @@ function get_all_scripts()
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			msg("������: ���� �� ����������")
+			msg(u8('Ошибка: файл не найден'))
 			return nil
 		end
 		local file = io.open(filePath, "r")
 		local content = file:read("*a")
 		file:close()
-		local cjson = require("cjson") -- ��� "cjson"
+		local cjson = require("cjson") --  "cjson"
 		local status, jsonData = pcall(cjson.decode, content)
 		if not status then
-			msg("������: �������� ������ JSON: " .. tostring(err))
+			msg(u8('Ошибка: не удалось прочитать JSON: ' .. tostring(err)))
 			return nil
 		end
 		return jsonData
@@ -303,14 +303,14 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
 			imgui.Columns(3)
-			imgui.CenterColumnText(u8"�������� � ������")
+			imgui.CenterColumnText(u8('Название и версия'))
 			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
 			imgui.NextColumn()
-			imgui.CenterColumnText(u8"������� ��������")
+			imgui.CenterColumnText(u8('Описание скрипта'))
 			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
 			imgui.NextColumn()
 			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-			imgui.CenterColumnText(u8("��������"))
+			imgui.CenterColumnText(u8('Действие'))
 			imgui.Columns(1)
 			imgui.Separator()
 			for index, value in ipairs(support_scripts) do
@@ -321,27 +321,27 @@ imgui.OnFrame(
 				imgui.NextColumn()
 				local script_path = dir .. '/' .. value.name .. '.lua'
 				if doesFileExist(script_path) then
-					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" Удалить##") .. index) then
+					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(' Удалить##') .. index) then
 						os.remove(script_path)
 						lua_thread.create(function ()
-							msg('Скрипт ' .. value.name .. '.lua успешно удалён! Перезагрузка через 3 секунды...')
+							msg(u8('Скрипт ' .. value.name .. '.lua успешно удалён! Перезагрузка через 3 секунды...'))
 							MainWindow[0] = false
 							wait(3000)
 							reloadScripts()
 						end)
 					end
 					imgui.SameLine()
-					if imgui.CenterColumnButton(u8("Обновить##") .. index) then
+					if imgui.CenterColumnButton(u8('Обновить##') .. index) then
 						downloadFileFromUrlToPath(value.link, script_path)
 						MainWindow[0] = false
 					end
 				else
-					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Скачать##") .. index) then
+					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(' Скачать##') .. index) then
 						downloadFileFromUrlToPath(value.link, script_path)
 						MainWindow[0] = false
 					end
 					imgui.SameLine()
-					if imgui.CenterColumnButton(u8("Обновить##") .. index) then
+					if imgui.CenterColumnButton(u8('Обновить##') .. index) then
 						downloadFileFromUrlToPath(value.link, script_path)
 						MainWindow[0] = false
 					end
