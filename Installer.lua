@@ -1,5 +1,3 @@
----@diagnostic disable: undefined-global, need-check-nil, lowercase-global, cast-local-type, unused-local
-
 script_name("MONETMOBILE Installer")
 script_author("MONETMOBILE")
 script_version("1.0")
@@ -10,16 +8,15 @@ local u8 = require('encoding').UTF8
 local ffi = require('ffi')
 local effil = require('effil')
 local memory = require('memory')
+local imgui = require('mimgui')
+local fa = require('fAwesome6_solid')
+local sizeX, sizeY = getScreenResolution()
+local MainWindow = imgui.new.bool()
 
 function isMonetLoader() 
 	return MONET_VERSION ~= nil 
 end
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
-
-local imgui = require('mimgui')
-local fa = require('fAwesome6_solid')
-local sizeX, sizeY = getScreenResolution()
-local MainWindow = imgui.new.bool()
 
 
 local dir = getWorkingDirectory():gsub('\\','/')
@@ -36,10 +33,10 @@ function main()
     if not isSampLoaded() or not isSampfuncsLoaded() then return end
     while not isSampAvailable() do wait(0) end
 
-    sampRegisterChatCommand('install', get_all_scripts)
+    sampRegisterChatCommand('installer', get_all_scripts)
 
     repeat wait(0) until sampIsLocalPlayerSpawned()
-    msg('Для установки/обновления используйте команду {00ccff}/install')
+    msg('��� ����-��������� ��������/�������� ����������� ������� {00ccff}/monet')
 
     wait(-1)
 
@@ -139,19 +136,19 @@ function downloadFileFromUrlToPath(url, path)
 				--print(("���������� %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				lua_thread.create(function ()
-					msg('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...')
+					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg('Ошибка загрузки: ' .. pos)
+				msg('������ ��������: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				lua_thread.create(function ()
-					msg('Скрипт ' .. path:gsub(dir .. '/','') .. ' успешно обновлён! Перезагрузка через 3 секунды...')
+					msg('�������� ������� ' .. path:gsub(dir .. '/','') .. ' ���������! ���������� �������� ����� 3 �������...')
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -175,7 +172,7 @@ function get_all_scripts()
 					sort()
 				end
 			elseif type == "error" then
-				msg('Ошибка: не удалось прочитать JSON: ' .. tostring(pos))
+				msg('������ ��������: ' .. pos)
 			end
 		end)
 	else
@@ -191,16 +188,16 @@ function get_all_scripts()
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			msg('Ошибка: файл не найден')
+			msg("������: ���� �� ����������")
 			return nil
 		end
 		local file = io.open(filePath, "r")
 		local content = file:read("*a")
 		file:close()
-		local cjson = require("cjson") --  "cjson"
+		local cjson = require("cjson") -- ��� "cjson"
 		local status, jsonData = pcall(cjson.decode, content)
 		if not status then
-			msg('Ошибка: не удалось прочитать JSON: ' .. tostring(err))
+			msg("������: �������� ������ JSON: " .. tostring(err))
 			return nil
 		end
 		return jsonData
@@ -299,50 +296,39 @@ end)
 imgui.OnFrame(
     function() return MainWindow[0] end,
     function(player)
-		imgui.Begin(fa.GEAR .." MTG Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
+		imgui.Begin(fa.GEAR .." MONETMOBILE Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
 			imgui.Columns(3)
-			imgui.CenterColumnText(u8('Название и версия'))
+			imgui.CenterColumnText(u8"�������� � ������")
 			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
 			imgui.NextColumn()
-			imgui.CenterColumnText(u8('Описание скрипта'))
+			imgui.CenterColumnText(u8"������� ��������")
 			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
 			imgui.NextColumn()
 			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-			imgui.CenterColumnText(u8('Действие'))
+			imgui.CenterColumnText(u8("��������"))
 			imgui.Columns(1)
 			imgui.Separator()
 			for index, value in ipairs(support_scripts) do
 				imgui.Columns(3)
-				imgui.CenterColumnText(u8(value.name .. ' [' .. value.ver .. ']'))	
+				imgui.CenterColumnText(u8(value.name .. " [" .. value.ver .. "]"))	
 				imgui.NextColumn()
 				imgui.CenterColumnText(u8(value.info))	
 				imgui.NextColumn()
-				local script_path = dir .. '/' .. value.name .. '.lua'
-				if doesFileExist(script_path) then
-					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(' Удалить##') .. index) then
-						os.remove(script_path)
+				if doesFileExist(dir .. '/' .. value.name .. '.lua') then
+					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" �������##") .. index) then
+						os.remove(dir .. '/' .. value.name .. '.lua')
 						lua_thread.create(function ()
-							msg('Скрипт ' .. value.name .. '.lua успешно удалён! Перезагрузка через 3 секунды...')
+							msg('������ ' .. value.name .. '.lua ������� �����! ���������� �������� ����� 3 �������...')
 							MainWindow[0] = false
 							wait(3000)
 							reloadScripts()
 						end)
 					end
-					imgui.SameLine()
-					if imgui.CenterColumnButton(u8('Обновить##') .. index) then
-						downloadFileFromUrlToPath(value.link, script_path)
-						MainWindow[0] = false
-					end
 				else
-					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(' Скачать##') .. index) then
-						downloadFileFromUrlToPath(value.link, script_path)
-						MainWindow[0] = false
-					end
-					imgui.SameLine()
-					if imgui.CenterColumnButton(u8('Обновить##') .. index) then
-						downloadFileFromUrlToPath(value.link, script_path)
+					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" �������##") .. index) then
+						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
 						MainWindow[0] = false
 					end
 				end
