@@ -52,7 +52,7 @@ function saveFileContent(filename)
         local str = ""
         local i = 0
         while fileContent[i] ~= nil and fileContent[i] ~= 0 do
-            str = str .. fileContent[i]
+            str = str .. string.char(fileContent[i])
             i = i + 1
         end
         f:write(str)
