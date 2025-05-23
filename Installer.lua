@@ -49,7 +49,13 @@ end
 function saveFileContent(filename)
     local f = io.open(scriptDir .. "/" .. filename, "w")
     if f then
-        f:write(imgui.getValue(fileContent))
+        local str = ""
+        local i = 0
+        while fileContent[i] ~= nil and fileContent[i] ~= 0 do
+            str = str .. fileContent[i]
+            i = i + 1
+        end
+        f:write(str)
         f:close()
     end
 end
