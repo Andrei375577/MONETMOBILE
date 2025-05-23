@@ -37,7 +37,7 @@ function loadFileContent(filename)
         local len = math.max(#content + 1, 4096)
         fileContent = imgui.new.char[len]()
         for i = 1, #content do
-            fileContent[i - 1] = content:sub(i, i)
+            fileContent[i - 1] = content:byte(i)
         end
         fileContent[#content] = 0
     else
