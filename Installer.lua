@@ -63,7 +63,7 @@ end
 imgui.OnFrame(
     function() return true end,
     function()
-        imgui.SetNextWindowSize(700, 500, imgui.Cond.FirstUseEver)
+        imgui.SetNextWindowSize(imgui.ImVec2(700, 500), imgui.Cond.FirstUseEver)
         imgui.Begin("Lua Script Editor")
         if imgui.Button("Обновить список файлов") then
             updateScriptList()
