@@ -9,7 +9,7 @@ local function getScriptDir()
 end
 
 local scriptDir = getScriptDir()
-local scriptsPath = scriptDir .. "/scripts"
+-- local scriptsPath = scriptDir .. "/scripts" -- больше не нужен
 
 local scriptFiles = {}
 local selectedFile = nil
@@ -18,19 +18,19 @@ local isEditing = imgui.new.bool(false)
 
 function updateScriptList()
     scriptFiles = {}
-    local attr = lfs.attributes(scriptsPath)
+    local attr = lfs.attributes(scriptDir)
     if not attr or attr.mode ~= "directory" then
         return
     end
-    for file in lfs.dir(scriptsPath) do
-        if file:match("%.lua$") then
+    for file in lfs.dir(scriptDir) do
+        if file:match("%.lua$") and file ~= "Install.lua" then
             table.insert(scriptFiles, file)
         end
     end
 end
 
 function loadFileContent(filename)
-    local f = io.open(scriptsPath .. "/" .. filename, "r")
+    local f = io.open(scriptDir .. "/" .. filename, "r")
     if f then
         local content = f:read("*a") or ""
         f:close()
@@ -41,7 +41,7 @@ function loadFileContent(filename)
 end
 
 function saveFileContent(filename)
-    local f = io.open(scriptsPath .. "/" .. filename, "w")
+    local f = io.open(scriptDir .. "/" .. filename, "w")
     if f then
         f:write(imgui.getValue(fileContent))
         f:close()
