@@ -93,7 +93,7 @@ imgui.OnFrame(
                     loadFileContent(selectedFile)
                     isEditing[0] = false
                 end
-                imgui.InputTextMultiline("##edit", fileContent, nil, imgui.ImVec2(500, 300))
+                imgui.InputTextMultiline("##edit", fileContent, 4096, imgui.ImVec2(500, 300))
             end
         end
         imgui.End()
