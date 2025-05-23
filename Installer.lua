@@ -73,7 +73,7 @@ imgui.OnFrame(
             if imgui.Selectable(file, selectedFile == file) then
                 selectedFile = file
                 loadFileContent(file)
-                isEditing[0] = false
+                isEditing[0] = true
             end
         end
         imgui.Separator()
