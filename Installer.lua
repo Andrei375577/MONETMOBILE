@@ -34,13 +34,15 @@ function loadFileContent(filename)
     if f then
         local content = f:read("*a") or ""
         f:close()
-        -- Пересоздаём буфер под размер файла (+1 для \0)
         local len = math.max(#content + 1, 4096)
         fileContent = imgui.new.char[len]()
-        imgui.setValue(fileContent, content)
+        for i = 1, #content do
+            fileContent[i - 1] = content:sub(i, i)
+        end
+        fileContent[#content] = 0
     else
         fileContent = imgui.new.char[4096]()
-        imgui.setValue(fileContent, "")
+        fileContent[0] = 0
     end
 end
 
