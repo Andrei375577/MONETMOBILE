@@ -22,7 +22,7 @@ local function setNumber(target, number)
             target[0] = target[0] * 10 + number
         end
     end
-end
+end 
 
 local function calculate()
     if operation[0] == 0 then input[0] = lastInput[0] + input[0] end
