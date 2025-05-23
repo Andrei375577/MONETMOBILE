@@ -18,6 +18,10 @@ local isEditing = imgui.new.bool(false)
 
 function updateScriptList()
     scriptFiles = {}
+    local attr = lfs.attributes(scriptsPath)
+    if not attr or attr.mode ~= "directory" then
+        return
+    end
     for file in lfs.dir(scriptsPath) do
         if file:match("%.lua$") then
             table.insert(scriptFiles, file)
@@ -92,6 +96,8 @@ end
 
 function main()
     updateScriptList()
-    sampRegisterChatCommand("edit", onEditCommand) -- Регистрируем команду /edit
+    if type(sampRegisterChatCommand) == "function" then
+        sampRegisterChatCommand("edit", onEditCommand) -- Регистрируем команду /edit
+    end
     while true do wait(0) end
 end
