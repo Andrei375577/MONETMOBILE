@@ -73,7 +73,7 @@ imgui.OnFrame(
             if imgui.Selectable(file, selectedFile == file) then
                 selectedFile = file
                 loadFileContent(file)
-                imgui.setValue(isEditing, false)
+                isEditing[0] = false
             end
         end
         imgui.Separator()
@@ -81,17 +81,17 @@ imgui.OnFrame(
             imgui.Text("Файл: " .. selectedFile)
             if not isEditing[0] then
                 if imgui.Button("Edit") then
-                    imgui.setValue(isEditing, true)
+                    isEditing[0] = true
                 end
             else
                 if imgui.Button("Сохранить") then
                     saveFileContent(selectedFile)
-                    imgui.setValue(isEditing, false)
+                    isEditing[0] = false
                 end
                 imgui.SameLine()
                 if imgui.Button("Отмена") then
                     loadFileContent(selectedFile)
-                    imgui.setValue(isEditing, false)
+                    isEditing[0] = false
                 end
                 imgui.InputTextMultiline("##edit", fileContent, imgui.ImVec2(500, 300))
             end
@@ -103,7 +103,7 @@ imgui.OnFrame(
 -- Команда активации edit
 function onEditCommand()
     if selectedFile then
-        imgui.setValue(isEditing, true)
+        isEditing[0] = true
     end
 end
 
