@@ -1,11 +1,11 @@
 [
     {
-        "name": "Neo Fuck v1.0",
-        "ver": "1.0",
-        "author": "MONETMOBILE",
-        "link": "https://github.com/Andrei375577/MONETMOBILE/blob/main/Neo%20Fuck%20v1.0.lua",
-        "img": "",
-        "platform": "MOBILE / PC",
-        "info": "/gg"
+        "name": "Neo Fuck",
+        "ver": "BETA 1.0",
+        "author": "MTG MODS",
+        "link": "https://github.com/MTGMODS/arizona-helper/raw/refs/heads/main/Arizona%20Helper.lua",
+        "img": "https://media.discordapp.net/attachments/1119664359891800186/1261913114337873961/IMG_20240714_081151.jpg?ex=6748a46b&is=674752eb&hm=3264a1f936434a74e640f323458712cc823153b6ab95ca1d28b0332b02470472&",
+        "platform": "PC + MOBILE",
+        "info": "Óíèâåðñàëüíûé /helper äëÿ ËÞÁÎÉ ÎÐÃÈ (âñå â 1)"
     }
 ]
