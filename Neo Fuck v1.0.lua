@@ -5,16 +5,17 @@
 
 --========================================================--
 local script_ver = 'v1.0'
-if not isMonetLoader() then
-    require("lib.moonloader")
-end
-require ("sampfuncs")
-require ("lib.samp.events")
 
 -- проверка окружения
 function isMonetLoader()
     return MONET_VERSION ~= nil
 end
+
+if not isMonetLoader() then
+    require("lib.moonloader")
+end
+require ("sampfuncs")
+require ("lib.samp.events")
 
 -- условное подключение
 local wm, vkeys
