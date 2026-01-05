@@ -87,9 +87,9 @@ local watermark      = imgui.new.bool(ini.config.watermark)
 local showTime       = imgui.new.bool(ini.config.showTime)
 local offsetY
 if isMonetLoader then
-    offsetY = 60
-else
     offsetY = 85
+else
+    offsetY = 60
 end
 
 local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
@@ -97,9 +97,9 @@ local alwaysRun      = false  -- опция для постоянного бег
 
 local font 
 if isMonetLoader then
-    font = renderCreateFont("Arial Black", 28, 4)
-else
     font = renderCreateFont("Arial", 40, 12)
+else
+	font = renderCreateFont("Arial Black", 28, 4)
 end
 
 
@@ -288,11 +288,11 @@ local render = imgui.OnFrame(
 -- окно ватермарка
 imgui.OnFrame(function() return watermark[0] end, function(player)
     local scrx, scry = getScreenResolution()
-    local winW, winH
+    local winW, winH = 485 * scale, 40 * scale
     if isMonetLoader then
-        winW, winH = 485, 40  -- размеры окна
-    else
         winW, winH = 485 * scale, 40 * scale
+    else
+        winW, winH = 485, 40
     end
 
     local margin1 = 42 * scale           -- отступ от края
@@ -321,11 +321,10 @@ imgui.OnFrame(function() return watermark[0] end, function(player)
     
     if imgui.Begin("##minet", watermark, imgui.WindowFlags.NoMove + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoInputs + imgui.WindowFlags.NoScrollbar) then
         if imgui.BeginChild("TopButtons", imgui.ImVec2(0, 0), true, flags) then   
-            imgui.SetWindowFontScale(0.9)
             if isMonetLoader then
-                imgui.SetWindowFontScale(1.4)
+                imgui.SetWindowFontScale(1)
             else
-                imgui.SetWindowFontScale(0.9)
+                imgui.SetWindowFontScale(1.4)
             end
             imgui.TextColored(colors.blue, "     Neo ")
             imgui.SameLine()
