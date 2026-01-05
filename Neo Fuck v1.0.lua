@@ -11,9 +11,7 @@ function isMonetLoader()
     return MONET_VERSION ~= nil
 end
 
-if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
-
-local scale = MONET_DPI_SCALE  -- используем MONET_DPI_SCALE для масштабирования
+if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end для масштабирования
 
 if not isMonetLoader() then
     require("lib.moonloader")
@@ -91,7 +89,7 @@ local offsetY        = imgui.new.int(ini.config.offsetY)
 local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
 
 
-local font = renderCreateFont("Arial Black", 28, 12)
+local font = renderCreateFont("Arial Black", 28 * MONET_DPI_SCALE, 12 * MONET_DPI_SCALE)
 
 
 
@@ -107,7 +105,7 @@ local labels = {
     fa.BOX_ARCHIVE .. " Остальное",
     fa.GEAR .. " Настройки"
 }
-local btnSize = imgui.ImVec2(147.5 * scale, 46.5 * scale)
+local btnSize = imgui.ImVec2(147.5 * MONET_DPI_SCALE, 46.5 * MONET_DPI_SCALE)
 
 -- контент вкладок
 
@@ -154,13 +152,13 @@ function cheatsTab()
 end
 
 function otherTab()
-    imgui.SetCursorPos(imgui.ImVec2(15, 10))
+    imgui.SetCursorPos(imgui.ImVec2(15, 10 * MONET_DPI_SCALE))
     if imgui.Checkbox("Watermark", watermark) then
         ini.config.watermark = watermark[0]
         inicfg.save(ini, "NeoFuck")
     end
 
-    imgui.SetCursorPos(imgui.ImVec2(15, 40)) -- второй элемент ниже
+    imgui.SetCursorPos(imgui.ImVec2(15, 40 * MONET_DPI_SCALE)) -- второй элемент ниже
     if imgui.Checkbox("Time", showTime) then
         ini.config.showTime = showTime[0]
         inicfg.save(ini, "NeoFuck")
@@ -185,7 +183,7 @@ local tabContent = {
 local render = imgui.OnFrame(
     function() return ui_open[0] end,
     function()
-        local winW, winH = 930 * scale, 490 * scale
+        local winW, winH = 930 * MONET_DPI_SCALE, 490 * MONET_DPI_SCALE
 
         imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Once)
 
@@ -202,7 +200,7 @@ local render = imgui.OnFrame(
         if imgui.Begin("UltraFuck by MaksQ V2.36", ui_open, flags) then
             
             -- верхний блок кнопок
-            if imgui.BeginChild("TopButtons", imgui.ImVec2(0, 60), true, flags) then
+            if imgui.BeginChild("TopButtons", imgui.ImVec2(0, 60 * MONET_DPI_SCALE), true, flags) then
                 local style = imgui.GetStyle()
                 local oldX, oldY = style.ItemSpacing.x, style.ItemSpacing.y
                 style.ItemSpacing.x = 15
@@ -252,7 +250,7 @@ local render = imgui.OnFrame(
         end
 
         -- === отдельное окно-логотип (правый нижний угол) ===
-        local logoW, logoH = 400 * scale, 30 * scale
+        local logoW, logoH = 400 * MONET_DPI_SCALE, 30 * MONET_DPI_SCALE
         
         local margin = 10 * MONET_DPI_SCALE
         local logoX = screenW - logoW - margin
