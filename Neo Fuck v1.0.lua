@@ -348,7 +348,7 @@ function main()
 
     if isMonetLoader() then
         -- === MonetLoader ===
-        addChatCommand("gg", function()
+        sampRegisterChatCommand("gg", function()
             ui_open[0] = not ui_open[0]
             imgui.ShowCursor = ui_open[0]
             print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
