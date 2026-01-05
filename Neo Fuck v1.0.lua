@@ -2,14 +2,12 @@
 --  Script:  
 --  Author:   Anonymous
 --  Version:  1.0
+
 --========================================================--
-
 local script_ver = 'v1.0'
-
--- базовые библиотеки
 require("lib.moonloader")
-require("sampfuncs")
-require("lib.samp.events")
+require ("sampfuncs")
+require ("lib.samp.events")
 
 -- проверка окружения
 function isMonetLoader()
@@ -23,10 +21,9 @@ if not isMonetLoader() then
     wm    = require("windows.message")
     vkeys = require("vkeys")
 else
-    
+    -- MonetLoader: модули не нужны или адаптированы
 end
 
--- остальные библиотеки
 local memory  = require("memory")
 local ffi     = require("ffi")
 local effil   = require("effil")
@@ -35,10 +32,7 @@ local fa      = require("fAwesome6_solid")
 local inicfg  = require("inicfg")
 local sampev  = require("samp.events")
 local events  = require("samp.events")
-
 local screen_resX, screen_resY = getScreenResolution()
-
-
 
 require("encoding").default = "CP1251"
 local u8 = require("encoding").UTF8
@@ -86,6 +80,8 @@ local currentTab     = new.int(1)
 local watermark      = imgui.new.bool(ini.config.watermark)
 local showTime       = imgui.new.bool(ini.config.showTime)
 local offsetY        = imgui.new.int(ini.config.offsetY)
+
+local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
 
 
 local font = renderCreateFont("Arial Black", 28, 12)
@@ -326,10 +322,8 @@ imgui.OnFrame(function() return watermark[0] end, function(player)
 end)
 
 -- отдельная функция для отрисовки времени
--- Отрисовка времени
-function drawServerTime(font, offsetY)
+function drawServerTime(screenW, screenH, font, offsetY)
     if showTime[0] then
-        local screenW, screenH = getScreenResolution() -- всегда актуальные значения
         local timer = os.time()
         local timeStr = os.date("%H:%M:%S", timer)
         local label = "Server-Time"
@@ -343,42 +337,43 @@ function drawServerTime(font, offsetY)
     end
 end
 
--- Основной цикл отрисовки времени
-function mainLoop()
-    while true do
-        drawServerTime(font, offsetY)
-        wait(0)
-    end
+-- отдельная функция для основного цикла
+function mainLoop(screenW, screenH)
+    drawServerTime(screenW, screenH, font, offsetY)
 end
 
 function main()
     while not isSampAvailable() do wait(100) end
+    local screenW, screenH = getScreenResolution()
 
     if isMonetLoader() then
         -- === MonetLoader ===
         addChatCommand("gg", function()
             ui_open[0] = not ui_open[0]
             imgui.ShowCursor = ui_open[0]
-            print("[UI] Окно переключено через MonetLoader команду /gg")
+            print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
         end)
-
     else
         -- === MoonLoader ===
         sampRegisterChatCommand("gg", function()
             ui_open[0] = not ui_open[0]
             imgui.ShowCursor = ui_open[0]
-            sampAddChatMessage("{FF0000}[UI]{FFFFFF} Окно переключено через MoonLoader команду /gg", -1)
+            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено через MoonLoader команду /gg", -1)
         end)
 
         -- обработка ESC и F12 только для MoonLoader
         addEventHandler('onWindowMessage', function(msg, wparam, lparam)
-            if msg == 0x100 then -- WM_KEYDOWN
+            -- WM_KEYDOWN = 0x100
+            if msg == 0x100 then
+                -- ESC закрывает окно
                 if wparam == vkeys.VK_ESCAPE and ui_open[0] and not isPauseMenuActive() then
                     consumeWindowMessage(true, false)
                     ui_open[0] = false
                     imgui.ShowCursor = false
                     return 0
                 end
+
+                -- F12 переключает окно
                 if wparam == vkeys.VK_F12 then
                     ui_open[0] = not ui_open[0]
                     imgui.ShowCursor = ui_open[0]
@@ -388,15 +383,18 @@ function main()
         end)
     end
 
+    -- основной цикл
     while true do
-        mainLoop()
+        mainLoop(screenW, screenH)
         if alwaysRun and doesCharExist(PLAYER_PED) then
             setCharRunning(PLAYER_PED, true)
         end
         wait(0)
     end
 end
- 
+
+
+
 imgui.OnInitialize(function()
     imgui.GetIO().IniFilename = nil
     fa.Init(18)
