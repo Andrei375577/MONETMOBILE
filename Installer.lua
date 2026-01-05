@@ -1,7 +1,3 @@
-script_name("MTG MODS Installer")
-script_author("MTG MODS")
-script_version("1.0")
-script_description('Script for installed other scripts')
 
 require("lib.moonloader")
 require('encoding').default = 'CP1251'
