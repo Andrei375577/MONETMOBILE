@@ -13,6 +13,8 @@ end
 
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
+local scale = isMonetLoader() and 1.5 or 1
+
 if not isMonetLoader() then
     require("lib.moonloader")
 end
@@ -89,7 +91,7 @@ local offsetY        = imgui.new.int(ini.config.offsetY)
 local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
 
 
-local font = renderCreateFont("Arial Black", 28 * MONET_DPI_SCALE, 12 * MONET_DPI_SCALE)
+local font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
 
 
 
@@ -452,4 +454,3 @@ imgui.OnInitialize(function()
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
