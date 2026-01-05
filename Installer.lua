@@ -1,141 +1,404 @@
--- NeoCalc v1.0
--- Разработчик: MonetMobile
+script_name("MTG MODS Installer")
+script_author("MTG MODS")
+script_version("1.0")
+script_description('Script for installed other scripts')
 
-script_name("NeoCalc")
-script_author("MonetMobile")
+require("lib.moonloader")
+require('encoding').default = 'CP1251'
+local u8 = require('encoding').UTF8
+local ffi = require('ffi')
+local effil = require('effil')
+local memory = require('memory')
 
-local imgui = require 'mimgui'
-local isOpen = imgui.new.bool(false)
+function isMonetLoader() 
+	return MONET_VERSION ~= nil 
+end
+if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
-local input = imgui.new.float(0.0)
-local lastInput = imgui.new.float(0.0)
-local operation = imgui.new.int(-1)
-local decimalAdded = imgui.new.bool(false)
+local imgui = require('mimgui')
+local fa = require('fAwesome6_solid')
+local sizeX, sizeY = getScreenResolution()
+local MainWindow = imgui.new.bool()
 
-local BUTTON_SIZE = imgui.ImVec2(85, 70)
-local BUTTON_MARGIN = 8
-local DISPLAY_HEIGHT = 80
-local DISPLAY_BG = imgui.ImVec4(0.13, 0.14, 0.18, 1)
-local DISPLAY_BORDER = imgui.ImVec4(0.25, 0.25, 0.28, 1)
-local COLOR_NUM = imgui.ImVec4(0.92, 0.92, 0.92, 1)
-local COLOR_NUM_HOVER = imgui.ImVec4(0.98, 0.98, 0.98, 1)
-local COLOR_OP = imgui.ImVec4(1, 0.6, 0.1, 1)
-local COLOR_OP_HOVER = imgui.ImVec4(1, 0.7, 0.3, 1)
-local COLOR_SPEC = imgui.ImVec4(0.2, 0.6, 0.9, 1)
-local COLOR_SPEC_HOVER = imgui.ImVec4(0.3, 0.7, 1, 1)
-local COLOR_EQ = imgui.ImVec4(0.2, 0.8, 0.4, 1)
-local COLOR_EQ_HOVER = imgui.ImVec4(0.3, 0.9, 0.5, 1)
 
-local function setNumber(target, number)
-    if decimalAdded[0] then
-        target[0] = tonumber(target[0] .. tostring(number))
-    else
-        if target[0] == 0 then
-            target[0] = number -- Заменяем 0 при первом вводе
-        else
-            target[0] = target[0] * 10 + number
-        end
-    end
-end 
-
-local function calculate()
-    if operation[0] == 0 then input[0] = lastInput[0] + input[0] end
-    if operation[0] == 1 then input[0] = lastInput[0] - input[0] end
-    if operation[0] == 2 then input[0] = lastInput[0] * input[0] end
-    if operation[0] == 3 then
-        if input[0] ~= 0 then
-            input[0] = lastInput[0] / input[0]
-        else
-            input[0] = 0
-        end
-    end
-    operation[0] = -1
-    decimalAdded[0] = false
+local dir = getWorkingDirectory():gsub('\\','/')
+local configDirectory = dir .. '/MTG Installer'
+if not doesDirectoryExist(configDirectory) then
+	createDirectory(configDirectory)
 end
 
-local function ButtonEx(label, color, color_hover, size)
-    imgui.PushStyleColor(imgui.Col.Button, color)
-    imgui.PushStyleColor(imgui.Col.ButtonHovered, color_hover)
-    local pressed = imgui.Button(label, size)
-    imgui.PopStyleColor(2)
-    return pressed
+local all_scripts = {}
+local support_scripts = {}
+
+function main()
+
+    if not isSampLoaded() or not isSampfuncsLoaded() then return end
+    while not isSampAvailable() do wait(0) end
+
+    sampRegisterChatCommand('mtg', get_all_scripts)
+
+    repeat wait(0) until sampIsLocalPlayerSpawned()
+    msg('Äëÿ àâòîóñòàíîâêè ñêðèïòîâ/õåëïåðîâ èñïîëüçóéòå êîìàíäó {00ccff}/mtg')
+
+    wait(-1)
+
 end
 
-local newFrame = imgui.OnFrame(
-    function() return isOpen[0] end,
+function msg(text)
+    sampAddChatMessage('{00ccff}[MTG MODS Installer] {ffffff}' .. text, -1)
+end
+function downloadToFile(url, path, callback, progressInterval)
+	callback = callback or function() end
+	progressInterval = progressInterval or 0.1
+
+	local effil = require("effil")
+	local progressChannel = effil.channel(0)
+
+	local runner = effil.thread(function(url, path)
+	local http = require("socket.http")
+	local ltn = require("ltn12")
+
+	local r, c, h = http.request({
+		method = "HEAD",
+		url = url,
+	})
+
+	if c ~= 200 then
+		return false, c
+	end
+	local total_size = h["content-length"]
+
+	local f = io.open(path, "wb")
+	if not f then
+		return false, "failed to open file"
+	end
+	local success, res, status_code = pcall(http.request, {
+		method = "GET",
+		url = url,
+		sink = function(chunk, err)
+		local clock = os.clock()
+		if chunk and not lastProgress or (clock - lastProgress) >= progressInterval then
+			progressChannel:push("downloading", f:seek("end"), total_size)
+			lastProgress = os.clock()
+		elseif err then
+			progressChannel:push("error", err)
+		end
+
+		return ltn.sink.file(f)(chunk, err)
+		end,
+	})
+
+	if not success then
+		return false, res
+	end
+
+	if not res then
+		return false, status_code
+	end
+
+	return true, total_size
+	end)
+	local thread = runner(url, path)
+
+	local function checkStatus()
+	local tstatus = thread:status()
+	if tstatus == "failed" or tstatus == "completed" then
+		local result, value = thread:get()
+
+		if result then
+		callback("finished", value)
+		else
+		callback("error", value)
+		end
+
+		return true
+	end
+	end
+
+	lua_thread.create(function()
+	if checkStatus() then
+		return
+	end
+
+	while thread:status() == "running" do
+		if progressChannel:size() > 0 then
+		local type, pos, total_size = progressChannel:pop()
+		callback(type, pos, total_size)
+		end
+		wait(0)
+	end
+
+	checkStatus()
+	end)
+end
+function downloadFileFromUrlToPath(url, path)
+	if isMonetLoader() then
+		downloadToFile(url, path, function(type, pos, total_size)
+			if type == "downloading" then
+				--print(("Ñêà÷èâàíèå %d/%d"):format(pos, total_size))
+			elseif type == "finished" then
+				lua_thread.create(function ()
+					msg('Çàãðóçêà ñêðèïòà ' .. path:gsub(dir .. '/','') .. ' çàêîí÷åíà! Ïåðåçàïóñê ñêðèïòîâ ÷åðåç 3 ñåêóíäû...')
+					MainWindow[0] = false
+					wait(3000)
+					reloadScripts()
+				end)
+			elseif type == "error" then
+				msg('Îøèáêà çàãðóçêè: ' .. pos)
+			end
+		end)
+	else
+		downloadUrlToFile(url, path, function(id, status)
+			if status == 6 then -- ENDDOWNLOADDATA
+				lua_thread.create(function ()
+					msg('Çàãðóçêà ñêðèïòà ' .. path:gsub(dir .. '/','') .. ' çàêîí÷åíà! Ïåðåçàïóñê ñêðèïòîâ ÷åðåç 3 ñåêóíäû...')
+					MainWindow[0] = false
+					wait(3000)
+					reloadScripts()
+				end)
+			end
+		end)
+	end
+end
+function get_all_scripts()
+	local path = configDirectory .. "/scripts.json"
+	local url = "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/scripts.json"
+	os.remove(path)
+	if isMonetLoader() then
+		downloadToFile(url, path, function(type, pos, total_size)
+			if type == "finished" then
+				local array = readJsonFile(path)
+				if array ~= nil then
+					all_scripts = array
+					sort()
+				end
+			elseif type == "error" then
+				msg('Îøèáêà çàãðóçêè: ' .. pos)
+			end
+		end)
+	else
+		downloadUrlToFile(url, path, function(id, status)
+			if status == 6 then -- ENDDOWNLOADDATA
+				local array = readJsonFile(path)
+				if array ~= nil then
+					all_scripts = array
+					sort()
+				end
+			end
+		end)
+	end
+	function readJsonFile(filePath)
+		if not doesFileExist(filePath) then
+			msg("Îøèáêà: Ôàéë íå ñóùåñòâóåò")
+			return nil
+		end
+		local file = io.open(filePath, "r")
+		local content = file:read("*a")
+		file:close()
+		local jsonData = decodeJson(content)
+		if not jsonData then
+			msg("Îøèáêà: Íåâåðíûé ôîðìàò JSON â ôàéëå " .. filePath)
+			return nil
+		end
+		return jsonData
+	end
+	function sort()
+		for index, value in ipairs(all_scripts) do
+			if ((isMonetLoader() and tostring(value.platform):find("MOBILE")) or (not isMonetLoader() and tostring(value.platform):find("PC"))) then
+				table.insert(support_scripts, value)
+			end
+		end
+		MainWindow[0] = true
+	end
+end
+
+imgui.OnInitialize(function()
+	imgui.GetIO().IniFilename = nil
+	if isMonetLoader() then
+		fa.Init(14 * MONET_DPI_SCALE)
+	else
+		fa.Init()
+	end
+	imgui.SwitchContext()
+    imgui.GetStyle().WindowPadding = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+    imgui.GetStyle().FramePadding = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+    imgui.GetStyle().ItemSpacing = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+    imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
+    imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(0, 0)
+    imgui.GetStyle().IndentSpacing = 0
+    imgui.GetStyle().ScrollbarSize = 10 * MONET_DPI_SCALE
+    imgui.GetStyle().GrabMinSize = 10 * MONET_DPI_SCALE
+    imgui.GetStyle().WindowBorderSize = 1 * MONET_DPI_SCALE
+    imgui.GetStyle().ChildBorderSize = 1 * MONET_DPI_SCALE
+    imgui.GetStyle().PopupBorderSize = 1 * MONET_DPI_SCALE
+    imgui.GetStyle().FrameBorderSize = 1 * MONET_DPI_SCALE
+    imgui.GetStyle().TabBorderSize = 1 * MONET_DPI_SCALE
+	imgui.GetStyle().WindowRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().ChildRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().FrameRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().PopupRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().ScrollbarRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().GrabRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().TabRounding = 8 * MONET_DPI_SCALE
+    imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 0.80)
+    imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
+    imgui.GetStyle().Colors[imgui.Col.BorderShadow]           = imgui.ImVec4(0.00, 0.00, 0.00, 0.00)
+    imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TitleBgCollapsed]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.MenuBarBg]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarBg]            = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrab]          = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabHovered]   = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabActive]    = imgui.ImVec4(0.51, 0.51, 0.51, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.CheckMark]              = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SliderGrab]             = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SliderGrabActive]       = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.20, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.47, 0.47, 0.47, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ResizeGrip]             = imgui.ImVec4(1.00, 1.00, 1.00, 0.25)
+    imgui.GetStyle().Colors[imgui.Col.ResizeGripHovered]      = imgui.ImVec4(1.00, 1.00, 1.00, 0.67)
+    imgui.GetStyle().Colors[imgui.Col.ResizeGripActive]       = imgui.ImVec4(1.00, 1.00, 1.00, 0.95)
+    imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TabUnfocused]           = imgui.ImVec4(0.07, 0.10, 0.15, 0.97)
+    imgui.GetStyle().Colors[imgui.Col.TabUnfocusedActive]     = imgui.ImVec4(0.14, 0.26, 0.42, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotLines]              = imgui.ImVec4(0.61, 0.61, 0.61, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotLinesHovered]       = imgui.ImVec4(1.00, 0.43, 0.35, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotHistogram]          = imgui.ImVec4(0.90, 0.70, 0.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotHistogramHovered]   = imgui.ImVec4(1.00, 0.60, 0.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TextSelectedBg]         = imgui.ImVec4(1.00, 0.00, 0.00, 0.35)
+    imgui.GetStyle().Colors[imgui.Col.DragDropTarget]         = imgui.ImVec4(1.00, 1.00, 0.00, 0.90)
+    imgui.GetStyle().Colors[imgui.Col.NavHighlight]           = imgui.ImVec4(0.26, 0.59, 0.98, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.NavWindowingHighlight]  = imgui.ImVec4(1.00, 1.00, 1.00, 0.70)
+    imgui.GetStyle().Colors[imgui.Col.NavWindowingDimBg]      = imgui.ImVec4(0.80, 0.80, 0.80, 0.20)
+    imgui.GetStyle().Colors[imgui.Col.ModalWindowDimBg]       = imgui.ImVec4(0.12, 0.12, 0.12, 0.95)
+end)
+
+imgui.OnFrame(
+    function() return MainWindow[0] end,
     function(player)
-        imgui.SetNextWindowSize(imgui.ImVec2(390, 500))
-        imgui.PushStyleVar(imgui.StyleVar.WindowRounding, 12)
-        imgui.PushStyleVar(imgui.StyleVar.FrameRounding, 8)
-        imgui.Begin("Калькулятор", isOpen, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar)
-
-        -- Дисплей
-        imgui.PushStyleColor(imgui.Col.ChildBg, DISPLAY_BG)
-        imgui.PushStyleColor(imgui.Col.Border, DISPLAY_BORDER)
-        imgui.BeginChild("display", imgui.ImVec2(0, DISPLAY_HEIGHT), true, imgui.WindowFlags.NoScrollbar)
-        imgui.SetCursorPosY(imgui.GetCursorPosY() + 18)
-        imgui.PushFont and imgui.PushFont(imgui.GetIO().Fonts:AddFontFromFileTTF("C:/Windows/Fonts/arialbd.ttf", 36))
-        local text = tostring(input[0])
-        local textSize = imgui.CalcTextSize(text).x
-        imgui.SetCursorPosX(imgui.GetWindowWidth() - textSize - 24)
-        imgui.TextColored(imgui.ImVec4(1,1,1,1), text)
-        if imgui.PopFont then imgui.PopFont() end
-        imgui.EndChild()
-        imgui.PopStyleColor(2)
-
-        imgui.Dummy(imgui.ImVec2(0, 10))
-
-        -- Кнопки
-        local function Row(btns)
-            for i, btn in ipairs(btns) do
-                local color, color_hover = btn.color, btn.color_hover
-                if ButtonEx(btn.label, color, color_hover, BUTTON_SIZE) then btn.action() end
-                if i < #btns then imgui.SameLine(nil, BUTTON_MARGIN) end
-            end
-        end
-
-        Row({
-            {label = "C", color = COLOR_SPEC, color_hover = COLOR_SPEC_HOVER, action = function() input[0] = 0 decimalAdded[0] = false end},
-            {label = "%", color = COLOR_SPEC, color_hover = COLOR_SPEC_HOVER, action = function() input[0] = input[0] / 100 end},
-            {label = "⌫", color = COLOR_SPEC, color_hover = COLOR_SPEC_HOVER, action = function() input[0] = math.floor(input[0] / 10) end},
-            {label = "/", color = COLOR_OP, color_hover = COLOR_OP_HOVER, action = function() lastInput[0] = input[0] operation[0] = 3 input[0] = 0 decimalAdded[0] = false end},
-        })
-        imgui.Dummy(imgui.ImVec2(0, BUTTON_MARGIN))
-        Row({
-            {label = "7", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 7) end},
-            {label = "8", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 8) end},
-            {label = "9", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 9) end},
-            {label = "*", color = COLOR_OP, color_hover = COLOR_OP_HOVER, action = function() lastInput[0] = input[0] operation[0] = 2 input[0] = 0 decimalAdded[0] = false end},
-        })
-        imgui.Dummy(imgui.ImVec2(0, BUTTON_MARGIN))
-        Row({
-            {label = "4", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 4) end},
-            {label = "5", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 5) end},
-            {label = "6", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 6) end},
-            {label = "-", color = COLOR_OP, color_hover = COLOR_OP_HOVER, action = function() lastInput[0] = input[0] operation[0] = 1 input[0] = 0 decimalAdded[0] = false end},
-        })
-        imgui.Dummy(imgui.ImVec2(0, BUTTON_MARGIN))
-        Row({
-            {label = "1", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 1) end},
-            {label = "2", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 2) end},
-            {label = "3", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 3) end},
-            {label = "+", color = COLOR_OP, color_hover = COLOR_OP_HOVER, action = function() lastInput[0] = input[0] operation[0] = 0 input[0] = 0 decimalAdded[0] = false end},
-        })
-        imgui.Dummy(imgui.ImVec2(0, BUTTON_MARGIN))
-        Row({
-            {label = ".", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() if not decimalAdded[0] then input[0] = tostring(input[0]) .. "." decimalAdded[0] = true end end},
-            {label = "0", color = COLOR_NUM, color_hover = COLOR_NUM_HOVER, action = function() setNumber(input, 0) end},
-            {label = "=", color = COLOR_EQ, color_hover = COLOR_EQ_HOVER, action = function() calculate() end},
-        })
-
-        imgui.PopStyleVar(2)
-        imgui.End()
+		imgui.Begin(fa.GEAR .." MTG Installer " .. fa.GEAR, MainWindow, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize + imgui.WindowFlags.AlwaysAutoResize)
+		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+		imgui.Columns(2)
+		imgui.CenterColumnText(u8"Íàçâàíèå ñêðèïòà è âåðñèÿ")
+		imgui.SetColumnWidth(-1, 250 * MONET_DPI_SCALE)
+		imgui.NextColumn()
+		imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+		imgui.CenterColumnText(u8("Äåéñòâèå"))
+		imgui.Columns(1)
+		imgui.Separator()
+		if imgui.BeginChild('##1', imgui.ImVec2(350 * MONET_DPI_SCALE, (35*#support_scripts) * MONET_DPI_SCALE), true) then
+			for index, value in ipairs(support_scripts) do
+				imgui.Columns(2)
+					imgui.CenterColumnText(value.name .. " [" .. value.ver .. "]")
+					imgui.SetColumnWidth(-1, 250 * MONET_DPI_SCALE)
+					imgui.NextColumn()
+					if doesFileExist(dir .. '/' .. value.name .. '.lua') then
+						if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" Óäàëèòü##") .. index) then
+							os.remove(dir .. '/' .. value.name .. '.lua')
+							lua_thread.create(function ()
+								msg('Ñêðèïò ' .. value.name .. '.lua óñïåøíî óäàë¸í! Ïåðåðåçàïóñê ñêðèïòîâ ÷åðåç 3 ñåêóíäû...')
+								MainWindow[0] = false
+								wait(3000)
+								reloadScripts()
+							end)
+						end
+					else
+						if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Ñêà÷àòü##") .. index) then
+							downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
+						end
+					end
+					imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
+					imgui.Columns(1)
+					imgui.Separator()
+			end
+			imgui.EndChild()
+		end
+		imgui.End()
     end
 )
 
-function main()
-    sampRegisterChatCommand("calc", function()
-        isOpen[0] = not isOpen[0]
-    end)
-    wait(-1)
+function imgui.CenterText(text)
+    local width = imgui.GetWindowWidth()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+    imgui.Text(text)
+end
+function imgui.CenterTextDisabled(text)
+    local width = imgui.GetWindowWidth()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+    imgui.TextDisabled(text)
+end
+function imgui.CenterColumnText(text)
+    imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+    imgui.Text(text)
+end
+function imgui.CenterColumnTextDisabled(text)
+    imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+    imgui.TextDisabled(text)
+end
+function imgui.CenterColumnColorText(imgui_RGBA, text)
+    imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+	imgui.TextColored(imgui_RGBA, text)
+end
+function imgui.CenterButton(text)
+    local width = imgui.GetWindowWidth()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+	if imgui.Button(text) then
+		return true
+	else
+		return false
+	end
+end
+function imgui.CenterColumnButton(text)
+	if text:find('(.+)##(.+)') then
+		local text1, text2 = text:match('(.+)##(.+)')
+		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text1).x / 2)
+	else
+		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+	end
+    if imgui.Button(text) then
+		return true
+	else
+		return false
+	end
+end
+function imgui.CenterColumnSmallButton(text)
+	if text:find('(.+)##(.+)') then
+		local text1, text2 = text:match('(.+)##(.+)')
+		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text1).x / 2)
+	else
+		imgui.SetCursorPosX((imgui.GetColumnOffset() + (imgui.GetColumnWidth() / 2)) - imgui.CalcTextSize(text).x / 2)
+	end
+    if imgui.SmallButton(text) then
+		return true
+	else
+		return false
+	end
+end
+function imgui.GetMiddleButtonX(count)
+    local width = imgui.GetWindowContentRegionWidth() 
+    local space = imgui.GetStyle().ItemSpacing.x
+    return count == 1 and width or width/count - ((space * (count-1)) / count)
 end
