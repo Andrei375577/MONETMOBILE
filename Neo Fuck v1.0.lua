@@ -5,7 +5,9 @@
 
 --========================================================--
 local script_ver = 'v1.0'
-require("lib.moonloader")
+if not isMonetLoader() then
+    require("lib.moonloader")
+end
 require ("sampfuncs")
 require ("lib.samp.events")
 
@@ -348,11 +350,14 @@ function main()
 
     if isMonetLoader() then
         -- === MonetLoader ===
-        sampRegisterChatCommand("gg", function()
-            ui_open[0] = not ui_open[0]
-            imgui.ShowCursor = ui_open[0]
-            print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
-        end)
+        sampev.onSendCommand = function(cmd)
+            if cmd == "/gg" then
+                ui_open[0] = not ui_open[0]
+                imgui.ShowCursor = ui_open[0]
+                print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
+                return false -- предотвращаем отправку команды в чат
+            end
+        end
     else
         -- === MoonLoader ===
         sampRegisterChatCommand("gg", function()
