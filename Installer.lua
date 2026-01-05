@@ -162,7 +162,7 @@ function downloadFileFromUrlToPath(url, path)
 end
 function get_all_scripts()
 	local path = configDirectory .. "/scripts.json"
-	local url = "https://github.com/MTGMODS/lua_scripts/raw/refs/heads/main/scripts.json"
+	local url = "https://github.com/Andrei375577/MONETMOBILE/blob/main/scripts.json"
 	os.remove(path)
 	if isMonetLoader() then
 		downloadToFile(url, path, function(type, pos, total_size)
