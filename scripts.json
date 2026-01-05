@@ -7,23 +7,5 @@
         "img": "",
         "platform": "MOBILE",
         "info": ""
-    },
-    {
-        "name": "NeoCalc",
-        "ver": "1.0 Free",
-        "author": "MONETMOBILE",
-        "link": "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/NeoCalc.lua",
-        "img": "",
-        "platform": "MOBILE",
-        "info": ""
-    },
-    {
-        "name": "MonetFlex v1 ",
-        "ver": "1.0 Free",
-        "author": "MONETMOBILE",
-        "link": "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/script/MonetFlex%20v1.lua",
-        "img": "",
-        "platform": "MOBILE",
-        "info": ""
     }
 ]
