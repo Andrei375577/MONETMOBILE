@@ -281,7 +281,7 @@ imgui.OnFrame(function() return watermark[0] end, function(player)
     imgui.SetNextWindowPos(imgui.ImVec2(margin1, scry - winH - margin2), imgui.Cond.Always)
     imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Always)
     
-    if not sampIsChatInputActive() then
+    if not isMonetLoader() and not sampIsChatInputActive() then
         player.HideCursor = true
     else
         player.HideCursor = false
