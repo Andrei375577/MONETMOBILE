@@ -13,7 +13,7 @@ end
 
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
-local scale = isMonetLoader() and 1.5 or 1
+local scale = isMonetLoader() and 1.7 or 1
 
 if not isMonetLoader() then
     require("lib.moonloader")
@@ -69,7 +69,6 @@ local defaultIni = {
     config = {
         watermark   = false,
         showTime    = false,
-        offsetY     = 60,
     }
 }
 
@@ -86,12 +85,12 @@ local ui_open        = new.bool(false)
 local currentTab     = new.int(1)
 local watermark      = imgui.new.bool(ini.config.watermark)
 local showTime       = imgui.new.bool(ini.config.showTime)
-local offsetY        = imgui.new.int(ini.config.offsetY)
+local offsetY        = 85
 
 local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
 
 
-local font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
+local font = renderCreateFont("Arial", 40, 4)
 
 
 
@@ -307,7 +306,7 @@ imgui.OnFrame(function() return watermark[0] end, function(player)
     
     if imgui.Begin("##minet", watermark, imgui.WindowFlags.NoMove + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoInputs + imgui.WindowFlags.NoScrollbar) then
         if imgui.BeginChild("TopButtons", imgui.ImVec2(0, 0), true, flags) then   
-            imgui.SetWindowFontScale(1.4)
+            imgui.SetWindowFontScale(0.9)
             imgui.TextColored(colors.blue, "     Neo ")
             imgui.SameLine()
             imgui.SetCursorPosX(imgui.GetCursorPosX() - 8)
@@ -333,6 +332,7 @@ end)
 
 -- отдельная функция для отрисовки времени
 function drawServerTime(screenW, screenH, font, offsetY)
+	local screenW, screenH = getScreenResolution()
     if showTime[0] then
         local timer = os.time()
         local timeStr = os.date("%H:%M:%S", timer)
@@ -340,7 +340,7 @@ function drawServerTime(screenW, screenH, font, offsetY)
         local text = label .. " " .. timeStr
 
         local x = (screenW / 2) - (renderGetFontDrawTextLength(font, text) / 2)
-        local y = screenH - offsetY[0]
+        local y = screenH - offsetY
 
         renderFontDrawText(font, label, x, y, 0xFFE1E1E1)
         renderFontDrawText(font, timeStr, x + renderGetFontDrawTextLength(font, label .. " "), y, 0xFFFF6347)
