@@ -13,7 +13,7 @@ end
 
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
-local scale = isMonetLoader() and 2 or 1  -- дополнительное увеличение для MonetLoader
+local scale = MONET_DPI_SCALE  -- используем MONET_DPI_SCALE для масштабирования
 
 if not isMonetLoader() then
     require("lib.moonloader")
