@@ -85,14 +85,22 @@ local ui_open        = new.bool(false)
 local currentTab     = new.int(1)
 local watermark      = imgui.new.bool(ini.config.watermark)
 local showTime       = imgui.new.bool(ini.config.showTime)
-local offsetY        = 85
+local offsetY
+if isMonetLoader then
+    offsetY = 60
+else
+    offsetY = 85
+end
 
 local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
 
 
-local font = renderCreateFont("Arial", 40, 4)
-
-
+local font 
+if isMonetLoader then
+    font = renderCreateFont("Arial Black", 28, 4)
+else
+    font = renderCreateFont("Arial", 40, 12)
+end
 
 
 local oX, oY = 250, 430
@@ -280,10 +288,17 @@ local render = imgui.OnFrame(
 -- окно ватермарка
 imgui.OnFrame(function() return watermark[0] end, function(player)
     local scrx, scry = getScreenResolution()
-    local winW, winH = 485 * scale, 40 * scale  -- размеры окна
-    
+    local winW, winH
+    if isMonetLoader then
+        winW, winH = 485, 40  -- размеры окна
+    else
+        winW, winH = 485 * scale, 40 * scale
+    end
+
     local margin1 = 42 * scale           -- отступ от края
     local margin2 = 7 * scale
+
+
     -- позиция: левый нижний угол
     imgui.SetNextWindowPos(imgui.ImVec2(margin1, scry - winH - margin2), imgui.Cond.Always)
     imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Always)
@@ -307,6 +322,11 @@ imgui.OnFrame(function() return watermark[0] end, function(player)
     if imgui.Begin("##minet", watermark, imgui.WindowFlags.NoMove + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoInputs + imgui.WindowFlags.NoScrollbar) then
         if imgui.BeginChild("TopButtons", imgui.ImVec2(0, 0), true, flags) then   
             imgui.SetWindowFontScale(0.9)
+            if isMonetLoader then
+                imgui.SetWindowFontScale(1.4)
+            else
+                imgui.SetWindowFontScale(0.9)
+            end
             imgui.TextColored(colors.blue, "     Neo ")
             imgui.SameLine()
             imgui.SetCursorPosX(imgui.GetCursorPosX() - 8)
