@@ -281,10 +281,10 @@ local render = imgui.OnFrame(
 -- окно ватермарка
 imgui.OnFrame(function() return watermark[0] end, function(player)
     local scrx, scry = getScreenResolution()
-    local winW, winH = 485 * MONET_DPI_SCALE, 40 * MONET_DPI_SCALE  -- размеры окна
+    local winW, winH = 485 * scale, 40 * scale  -- размеры окна
     
-    local margin1 = 42 * MONET_DPI_SCALE           -- отступ от края
-    local margin2 = 7 * MONET_DPI_SCALE
+    local margin1 = 42 * scale           -- отступ от края
+    local margin2 = 7 * scale
     -- позиция: левый нижний угол
     imgui.SetNextWindowPos(imgui.ImVec2(margin1, scry - winH - margin2), imgui.Cond.Always)
     imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Always)
