@@ -11,7 +11,7 @@ function isMonetLoader()
     return MONET_VERSION ~= nil
 end
 
-if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end для масштабирования
+if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
 if not isMonetLoader() then
     require("lib.moonloader")
@@ -452,3 +452,4 @@ imgui.OnInitialize(function()
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+
