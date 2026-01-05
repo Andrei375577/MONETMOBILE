@@ -11,6 +11,10 @@ function isMonetLoader()
     return MONET_VERSION ~= nil
 end
 
+if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
+
+local scale = isMonetLoader() and 2 or 1  -- дополнительное увеличение для MonetLoader
+
 if not isMonetLoader() then
     require("lib.moonloader")
 end
@@ -103,7 +107,7 @@ local labels = {
     fa.BOX_ARCHIVE .. " Остальное",
     fa.GEAR .. " Настройки"
 }
-local btnSize = imgui.ImVec2(147.5, 46.5)
+local btnSize = imgui.ImVec2(147.5 * scale, 46.5 * scale)
 
 -- контент вкладок
 
@@ -181,7 +185,8 @@ local tabContent = {
 local render = imgui.OnFrame(
     function() return ui_open[0] end,
     function()
-        local winW, winH = 930, 490
+        local winW, winH = 930 * scale, 490 * scale
+
         imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Once)
 
         -- получаем размер экрана
@@ -247,8 +252,9 @@ local render = imgui.OnFrame(
         end
 
         -- === отдельное окно-логотип (правый нижний угол) ===
-        local logoW, logoH = 400, 30
-        local margin = 10
+        local logoW, logoH = 400 * scale, 30 * scale
+        
+        local margin = 10 * MONET_DPI_SCALE
         local logoX = screenW - logoW - margin
         local logoY = screenH - logoH - margin
         imgui.SetNextWindowPos(imgui.ImVec2(logoX, logoY), imgui.Cond.Always)
@@ -275,9 +281,10 @@ local render = imgui.OnFrame(
 -- окно ватермарка
 imgui.OnFrame(function() return watermark[0] end, function(player)
     local scrx, scry = getScreenResolution()
-    local winW, winH = 485, 40  -- размеры окна
-    local margin1 = 42           -- отступ от края
-    local margin2 = 7
+    local winW, winH = 485 * MONET_DPI_SCALE, 40 * MONET_DPI_SCALE  -- размеры окна
+    
+    local margin1 = 42 * MONET_DPI_SCALE           -- отступ от края
+    local margin2 = 7 * MONET_DPI_SCALE
     -- позиция: левый нижний угол
     imgui.SetNextWindowPos(imgui.ImVec2(margin1, scry - winH - margin2), imgui.Cond.Always)
     imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Always)
@@ -403,32 +410,32 @@ end
 
 imgui.OnInitialize(function()
     imgui.GetIO().IniFilename = nil
-    fa.Init(18)
+    fa.Init(18 * MONET_DPI_SCALE)
     imgui.SwitchContext()
     local style = imgui.GetStyle()
 
     -- базовые отступы и размеры
-    style.WindowPadding                     = imgui.ImVec2(5, 5)
-    style.FramePadding                      = imgui.ImVec2(5, 5)
-    style.ItemSpacing                       = imgui.ImVec2(5, 5)
-    style.ItemInnerSpacing                  = imgui.ImVec2(2, 2)
+    style.WindowPadding                     = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+    style.FramePadding                      = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+    style.ItemSpacing                       = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+    style.ItemInnerSpacing                  = imgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
     style.TouchExtraPadding                 = imgui.ImVec2(0, 0)
 
     style.IndentSpacing                     = 0
-    style.ScrollbarSize                     = 10
-    style.GrabMinSize                       = 10
+    style.ScrollbarSize                     = 10 * MONET_DPI_SCALE
+    style.GrabMinSize                       = 10 * MONET_DPI_SCALE
     style.WindowBorderSize                  = 0
-    style.ChildBorderSize                   = 1
+    style.ChildBorderSize                   = 1 * MONET_DPI_SCALE
     style.PopupBorderSize                   = 0
     style.FrameBorderSize                   = 0
     style.TabBorderSize                     = 0
-    style.WindowRounding                    = 8
-    style.ChildRounding                     = 8
-    style.FrameRounding                     = 8
-    style.PopupRounding                     = 8
-    style.ScrollbarRounding                 = 8
-    style.GrabRounding                      = 8
-    style.TabRounding                       = 8
+    style.WindowRounding                    = 8 * MONET_DPI_SCALE
+    style.ChildRounding                     = 8 * MONET_DPI_SCALE
+    style.FrameRounding                     = 8 * MONET_DPI_SCALE
+    style.PopupRounding                     = 8 * MONET_DPI_SCALE
+    style.ScrollbarRounding                 = 8 * MONET_DPI_SCALE
+    style.GrabRounding                      = 8 * MONET_DPI_SCALE
+    style.TabRounding                       = 8 * MONET_DPI_SCALE
 
     style.WindowTitleAlign                  = imgui.ImVec2(0.5, 0.5)
     style.ButtonTextAlign                   = imgui.ImVec2(0.5, 0.5)
