@@ -357,25 +357,9 @@ function drawServerTime(screenW, screenH, font, offsetY)
     end
 end
 
--- функция для отрисовки полоски
-function drawBar(screenW, screenH)
-    if isMonetLoader() then
-        local barHeight = 50
-        local barY = screenH - barHeight
-        -- рисуем полупрозрачную полоску
-        renderDrawBox(0, barY, screenW, barHeight, 0xAA000000)
-        -- текст на полоске
-        local text = "Neo Fuck - Нажми для открытия"
-        local textX = (screenW - renderGetFontDrawTextLength(font, text)) / 2
-        local textY = barY + (barHeight - 28) / 2  -- центрируем по вертикали
-        renderFontDrawText(font, text, textX, textY, 0xFFFFFFFF)
-    end
-end
-
 -- отдельная функция для основного цикла
 function mainLoop(screenW, screenH)
     drawServerTime(screenW, screenH, font, offsetY)
-    drawBar(screenW, screenH)
 end
 
 function main()
@@ -392,20 +376,6 @@ function main()
                 return false -- предотвращаем отправку команды в чат
             end
         end
-        
-        -- обработка клика на полоску
-        addEventHandler('onWindowMessage', function(msg, wparam, lparam)
-            if msg == 0x201 then -- WM_LBUTTONDOWN
-                local x = bit.band(lparam, 0xFFFF)
-                local y = bit.rshift(lparam, 16)
-                local screenH = getScreenResolution()
-                if y > screenH - 50 then
-                    ui_open[0] = not ui_open[0]
-                    imgui.ShowCursor = ui_open[0]
-                    print("[NeoFuck] Окно открыто через клик на полоску (MonetLoader)")
-                end
-            end
-        end)
     else
         -- === MoonLoader ===
         sampRegisterChatCommand("gg", function()
