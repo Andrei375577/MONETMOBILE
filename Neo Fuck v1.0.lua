@@ -16,6 +16,7 @@ if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 local scale = isMonetLoader() and 1.4 or 1
 local scale1 = isMonetLoader() and 1.7 or 1
 local scale2 = isMonetLoader() and 0.59 or 1
+
 if not isMonetLoader() then
     require("lib.moonloader")
 end
@@ -185,6 +186,8 @@ local tabContent = {
 local render = imgui.OnFrame(
     function() return ui_open[0] end,
     function()
+        local main_hovered = false
+        local logo_hovered = false
         local winW, winH = 930 * MONET_DPI_SCALE, 490 * MONET_DPI_SCALE
 
         imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.Once)
@@ -248,6 +251,7 @@ local render = imgui.OnFrame(
                 imgui.EndChild()
             end
 
+            if imgui.IsWindowHovered() then main_hovered = true end
             imgui.End()
         end
 
@@ -274,10 +278,16 @@ local render = imgui.OnFrame(
             imgui.SetWindowFontScale(1.0) -- возвращаем стандартный масштаб
         end
         
+        if imgui.IsWindowHovered() then logo_hovered = true end
         imgui.End()
+        
+        -- Закрытие окна при клике вне его
+        if imgui.IsMouseClicked(0) and not (main_hovered or logo_hovered) then
+            ui_open[0] = false
+            imgui.ShowCursor = false
+        end
     end
 )
-
 -- окно ватермарка
 imgui.OnFrame(function() return watermark[0] end, function(player)
     local scrx, scry = getScreenResolution()
@@ -441,16 +451,16 @@ imgui.OnInitialize(function()
     style.ButtonTextAlign                   = imgui.ImVec2(0.5, 0.5)
     style.SelectableTextAlign               = imgui.ImVec2(0.5, 0.5)
 
-    style.Colors[imgui.Col.FrameBg]         = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.FrameBgHovered]  = imgui.ImVec4(0.35, 0.35, 0.35, 1.0)
-    style.Colors[imgui.Col.FrameBgActive]   = imgui.ImVec4(0.6, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.CheckMark]       = imgui.ImVec4(1.0, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.WindowBg]        = imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
-    style.Colors[imgui.Col.ChildBg]         = imgui.ImVec4(0.15, 0.15, 0.15, 1.0)
-    style.Colors[imgui.Col.Button]        = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.ButtonHovered] = imgui.ImVec4(1.0, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.ButtonActive]  = imgui.ImVec4(0.8, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.Text]            = imgui.ImVec4(1.0, 1.0, 1.0, 1.0)
+    style.Colors[imgui.Col.FrameBg]         = imgui.ImVec4(0.2, 0.2, 0.2, 1.0) -- темно-красный
+    style.Colors[imgui.Col.FrameBgHovered]  = imgui.ImVec4(0.35, 0.35, 0.35, 1.0) -- светло-красный
+    style.Colors[imgui.Col.FrameBgActive]   = imgui.ImVec4(0.6, 0.0, 0.0, 1.0) -- активный красный
+    style.Colors[imgui.Col.CheckMark]       = imgui.ImVec4(1.0, 0.0, 0.0, 1.0) -- красная галочка
+    style.Colors[imgui.Col.WindowBg]        = imgui.ImVec4(0.0, 0.0, 0.0, 0.0) -- прозрачный фон окна
+    style.Colors[imgui.Col.ChildBg]         = imgui.ImVec4(0.15, 0.15, 0.15, 1.0) -- темно-серый фон дочернего окна
+    style.Colors[imgui.Col.Button]        = imgui.ImVec4(0.2, 0.2, 0.2, 1.0) -- темно-красный
+    style.Colors[imgui.Col.ButtonHovered] = imgui.ImVec4(1.0, 0.2, 0.2, 1.0) -- светло-красный
+    style.Colors[imgui.Col.ButtonActive]  = imgui.ImVec4(0.8, 0.0, 0.0, 1.0) -- активный красный
+    style.Colors[imgui.Col.Text]            = imgui.ImVec4(1.0, 1.0, 1.0, 1.0) -- белый текст
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
