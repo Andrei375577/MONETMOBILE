@@ -332,7 +332,7 @@ imgui.OnFrame(
 						end)
 					end
 					imgui.NewLine()
-					if imgui.CenterColumnButton(fa.REFRESH .. u8(" Обновить##") .. index) then
+					if imgui.CenterColumnButton(fa.ROTATE .. u8(" Обновить##") .. index) then
 						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
 						MainWindow[0] = false
 					end
@@ -416,3 +416,4 @@ function imgui.GetMiddleButtonX(count)
     local space = imgui.GetStyle().ItemSpacing.x
     return count == 1 and width or width/count - ((space * (count-1)) / count)
 end
+
