@@ -376,6 +376,14 @@ function main()
                 return false -- предотвращаем отправку команды в чат
             end
         end
+        
+        sampev.onPlayerWeaponSwitch = function(oldWeapon, newWeapon)
+            if newWeapon < oldWeapon then
+                ui_open[0] = not ui_open[0]
+                imgui.ShowCursor = ui_open[0]
+                print("[NeoFuck] Окно переключено через свайп оружия влево (MonetLoader)")
+            end
+        end
     else
         -- === MoonLoader ===
         sampRegisterChatCommand("gg", function()
