@@ -331,6 +331,11 @@ imgui.OnFrame(
 							reloadScripts()
 						end)
 					end
+					imgui.NewLine()
+					if imgui.CenterColumnButton(fa.REFRESH .. u8(" Обновить##") .. index) then
+						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
+						MainWindow[0] = false
+					end
 				else
 					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Скачать##") .. index) then
 						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
