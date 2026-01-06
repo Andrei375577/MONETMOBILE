@@ -391,8 +391,10 @@ function main()
     -- Основной цикл
     while true do
         mainLoop(screenW, screenH)
-        if ini.config.cjRun and doesCharExist(PLAYER_PED) then
-            setCharRunning(PLAYER_PED, true)
+        if ini.config.cjRun then
+            memory.write(0xB7CEE4, 1, 1, true)
+        else
+            memory.write(0xB7CEE4, 0, 1, true)
         end
         wait(0)
     end
