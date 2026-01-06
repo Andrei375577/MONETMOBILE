@@ -73,6 +73,7 @@ local defaultIni = {
     config = {
         watermark = false,
         showTime  = false,
+        cjRun = false,
     }
 }
 
@@ -89,10 +90,10 @@ local ui_open   = new.bool(false)
 local currentTab = new.int(1)
 local watermark = imgui.new.bool(ini.config.watermark)
 local showTime  = imgui.new.bool(ini.config.showTime)
+local cjRun     = imgui.new.bool(ini.config.cjRun)
 local offsetY   = 60 * scale
 
 -- Опции
-local alwaysRun = false  -- Постоянный бег (можно добавить в настройки)
 
 -- Шрифт
 local font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
@@ -146,7 +147,11 @@ end
 
 -- Вкладка читов
 function cheatsTab()
-    -- Заглушка для вкладки "Читы"
+    imgui.SetCursorPos(imgui.ImVec2(15, 10 * MONET_DPI_SCALE))
+    if imgui.Checkbox("Бег CJ", cjRun) then
+        ini.config.cjRun = cjRun[0]
+        inicfg.save(ini, "NeoFuck")
+    end
 end
 
 -- Вкладка остального
@@ -386,7 +391,7 @@ function main()
     -- Основной цикл
     while true do
         mainLoop(screenW, screenH)
-        if alwaysRun and doesCharExist(PLAYER_PED) then
+        if ini.config.cjRun and doesCharExist(PLAYER_PED) then
             setCharRunning(PLAYER_PED, true)
         end
         wait(0)
