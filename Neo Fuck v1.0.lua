@@ -14,7 +14,8 @@ end
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 
 local scale = isMonetLoader() and 1.4 or 1
-local scale1 = isMonetLoader() and 1.4 or 1
+local scale1 = isMonetLoader() and 1.7 or 1
+local scale2 = isMonetLoader() and 0.59 or 1
 if not isMonetLoader() then
     require("lib.moonloader")
 end
@@ -69,7 +70,6 @@ local defaultIni = {
     config = {
         watermark   = false,
         showTime    = false,
-        offsetY     = 60 * scale,
     }
 }
 
@@ -86,7 +86,7 @@ local ui_open        = new.bool(false)
 local currentTab     = new.int(1)
 local watermark      = imgui.new.bool(ini.config.watermark)
 local showTime       = imgui.new.bool(ini.config.showTime)
-local offsetY        = imgui.new.int(ini.config.offsetY)
+local offsetY        = 60 * scale
 
 local alwaysRun      = false  -- опция для постоянного бега, можно добавить в настройки позже
 
@@ -97,7 +97,7 @@ local font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
 
 
 local oX, oY = 250, 430
-local piska  = 0
+
 
 local labels = {
     fa.HOUSE_MEDICAL .. " Основное",
@@ -281,8 +281,8 @@ local render = imgui.OnFrame(
 -- окно ватермарка
 imgui.OnFrame(function() return watermark[0] end, function(player)
     local scrx, scry = getScreenResolution()
-    local winW, winH = 485 * scale, 40 * scale  -- размеры окна
-    
+    local winW, winH = 485 * scale, 40 * scale1 -- размеры окна
+    local flags = imgui.WindowFlags.NoResize + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoTitleBar
     local margin1 = 42 * scale           -- отступ от края
     local margin2 = 7 * scale
     -- позиция: левый нижний угол
@@ -305,9 +305,9 @@ imgui.OnFrame(function() return watermark[0] end, function(player)
 
     imgui.PushStyleColor(imgui.Col.Text, imgui.ImVec4(0.90, 0.90, 0.93, 0.85))
     
-    if imgui.Begin("##minet", watermark, imgui.WindowFlags.NoMove + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoInputs + imgui.WindowFlags.NoScrollbar) then
+    if imgui.Begin("##minet", watermark, flags) then
         if imgui.BeginChild("TopButtons", imgui.ImVec2(0, 0), true, flags) then   
-            imgui.SetWindowFontScale(1.4)
+            imgui.SetWindowFontScale(1.4 * scale2)
             imgui.TextColored(colors.blue, "     Neo ")
             imgui.SameLine()
             imgui.SetCursorPosX(imgui.GetCursorPosX() - 8)
@@ -340,7 +340,7 @@ function drawServerTime(screenW, screenH, font, offsetY)
         local text = label .. " " .. timeStr
 
         local x = (screenW / 2) - (renderGetFontDrawTextLength(font, text) / 2)
-        local y = screenH - offsetY[0]
+        local y = screenH - offsetY
 
         renderFontDrawText(font, label, x, y, 0xFFE1E1E1)
         renderFontDrawText(font, timeStr, x + renderGetFontDrawTextLength(font, label .. " "), y, 0xFFFF6347)
