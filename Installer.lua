@@ -40,7 +40,7 @@ function main()
     sampRegisterChatCommand('mtg', get_all_scripts)
 
     repeat wait(0) until sampIsLocalPlayerSpawned()
-    msg('Р”Р»СЏ Р°РІС‚Рѕ-СѓСЃС‚Р°РЅРѕРІРєРё СЃРєСЂРёРїС‚РѕРІ/С…РµР»РїРµСЂРѕРІ РёСЃРїРѕР»СЊР·СѓР№С‚Рµ РєРѕРјР°РЅРґСѓ {00ccff}/mtg')
+    msg('Для авто-установки скриптов/хелперов используйте команду {00ccff}/mtg')
 
     wait(-1)
 
@@ -137,22 +137,22 @@ function downloadFileFromUrlToPath(url, path)
 	if isMonetLoader() then
 		downloadToFile(url, path, function(type, pos, total_size)
 			if type == "downloading" then
-				--print(("РЎРєР°С‡РёРІР°РЅРёРµ %d/%d"):format(pos, total_size))
+				--print(("Скачивание %d/%d"):format(pos, total_size))
 			elseif type == "finished" then
 				lua_thread.create(function ()
-					msg('Р—Р°РіСЂСѓР·РєР° СЃРєСЂРёРїС‚Р° ' .. path:gsub(dir .. '/','') .. ' Р·Р°РєРѕРЅС‡РµРЅР°! РџРµСЂРµР·Р°РїСѓСЃРє СЃРєСЂРёРїС‚РѕРІ С‡РµСЂРµР· 3 СЃРµРєСѓРЅРґС‹...')
+					msg('Загрузка скрипта ' .. path:gsub(dir .. '/','') .. ' закончена! Перезапуск скриптов через 3 секунды...')
 					wait(3000)
 					reloadScripts()
 				end)
 			elseif type == "error" then
-				msg('РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ' .. pos)
+				msg('Ошибка загрузки: ' .. pos)
 			end
 		end)
 	else
 		downloadUrlToFile(url, path, function(id, status)
 			if status == 6 then -- ENDDOWNLOADDATA
 				lua_thread.create(function ()
-					msg('Р—Р°РіСЂСѓР·РєР° СЃРєСЂРёРїС‚Р° ' .. path:gsub(dir .. '/','') .. ' Р·Р°РєРѕРЅС‡РµРЅР°! РџРµСЂРµР·Р°РїСѓСЃРє СЃРєСЂРёРїС‚РѕРІ С‡РµСЂРµР· 3 СЃРµРєСѓРЅРґС‹...')
+					msg('Загрузка скрипта ' .. path:gsub(dir .. '/','') .. ' закончена! Перезапуск скриптов через 3 секунды...')
 					MainWindow[0] = false
 					wait(3000)
 					reloadScripts()
@@ -176,7 +176,7 @@ function get_all_scripts()
 					sort()
 				end
 			elseif type == "error" then
-				msg('РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё: ' .. pos)
+				msg('Ошибка загрузки: ' .. pos)
 			end
 		end)
 	else
@@ -192,16 +192,16 @@ function get_all_scripts()
 	end
 	function readJsonFile(filePath)
 		if not doesFileExist(filePath) then
-			msg("РћС€РёР±РєР°: Р¤Р°Р№Р» РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚")
+			msg("Ошибка: Файл не существует")
 			return nil
 		end
 		local file = io.open(filePath, "r")
 		local content = file:read("*a")
 		file:close()
-		local cjson = require("cjson") -- РёР»Рё "cjson"
+		local cjson = require("cjson") -- или "cjson"
 		local status, jsonData = pcall(cjson.decode, content)
 		if not status then
-			msg("РћС€РёР±РєР°: РќРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ JSON: " .. tostring(err))
+			msg("Ошибка: Неверный формат JSON: " .. tostring(err))
 			return nil
 		end
 		return jsonData
@@ -305,14 +305,14 @@ imgui.OnFrame(
 		imgui.SetNextWindowPos(imgui.ImVec2(sizeX / 2, sizeY / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
 		if imgui.BeginChild('##1', imgui.ImVec2(660 * MONET_DPI_SCALE, (36*#support_scripts) * MONET_DPI_SCALE), true) then
 			imgui.Columns(3)
-			imgui.CenterColumnText(u8"РќР°Р·РІР°РЅРёРµ Рё РІРµСЂСЃРёСЏ")
+			imgui.CenterColumnText(u8"Название и версия")
 			imgui.SetColumnWidth(-1, 200 * MONET_DPI_SCALE)
 			imgui.NextColumn()
-			imgui.CenterColumnText(u8"РљСЂР°С‚РєРѕРµ РѕРїРёСЃР°РЅРёРµ")
+			imgui.CenterColumnText(u8"Краткое описание")
 			imgui.SetColumnWidth(-1, 360 * MONET_DPI_SCALE)
 			imgui.NextColumn()
 			imgui.SetColumnWidth(-1, 100 * MONET_DPI_SCALE)
-			imgui.CenterColumnText(u8("Р”РµР№СЃС‚РІРёРµ"))
+			imgui.CenterColumnText(u8("Действие"))
 			imgui.Columns(1)
 			imgui.Separator()
 			for index, value in ipairs(support_scripts) do
@@ -322,17 +322,17 @@ imgui.OnFrame(
 				imgui.CenterColumnText(u8(value.info))	
 				imgui.NextColumn()
 				if doesFileExist(dir .. '/' .. value.name .. '.lua') then
-					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" РЈРґР°Р»РёС‚СЊ##") .. index) then
+					if imgui.CenterColumnButton(fa.TRASH_CAN .. u8(" Удалить##") .. index) then
 						os.remove(dir .. '/' .. value.name .. '.lua')
 						lua_thread.create(function ()
-							msg('РЎРєСЂРёРїС‚ ' .. value.name .. '.lua СѓСЃРїРµС€РЅРѕ СѓРґР°Р»С‘РЅ! РџРµСЂРµР·Р°РїСѓСЃРє СЃРєСЂРёРїС‚РѕРІ С‡РµСЂРµР· 3 СЃРµРєСѓРЅРґС‹...')
+							msg('Скрипт ' .. value.name .. '.lua успешно удалён! Перезапуск скриптов через 3 секунды...')
 							MainWindow[0] = false
 							wait(3000)
 							reloadScripts()
 						end)
 					end
 				else
-					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" РЎРєР°С‡Р°С‚СЊ##") .. index) then
+					if imgui.CenterColumnButton(fa.DOWNLOAD .. u8(" Скачать##") .. index) then
 						downloadFileFromUrlToPath(value.link, dir .. '/' .. value.name .. '.lua')
 						MainWindow[0] = false
 					end
