@@ -281,8 +281,8 @@ local render = imgui.OnFrame(
         if imgui.IsWindowHovered() then logo_hovered = true end
         imgui.End()
         
-        -- Закрытие окна при клике вне его
-        if imgui.IsMouseClicked(0) and not (main_hovered or logo_hovered) then
+        -- Закрытие окна при клике вне его (только для MoonLoader)
+        if not isMonetLoader() and imgui.IsMouseClicked(0) and not (main_hovered or logo_hovered) then
             ui_open[0] = false
             imgui.ShowCursor = false
         end
