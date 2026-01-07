@@ -6,7 +6,6 @@
 
 local script_ver = 'v1.0'
 
-
 -- Проверка окружения
 function isMonetLoader()
     return MONET_VERSION ~= nil
@@ -93,6 +92,8 @@ local watermark = imgui.new.bool(ini.config.watermark)
 local showTime  = imgui.new.bool(ini.config.showTime)
 local cjRun     = imgui.new.bool(ini.config.cjRun)
 local offsetY   = 60 * scale
+local applyCJState
+local idskin = nil  -- переменная для хранения исходного скина
 
 -- Опции
 
@@ -150,8 +151,7 @@ end
 function cheatsTab()
     imgui.SetCursorPos(imgui.ImVec2(15, 10 * MONET_DPI_SCALE))
     if imgui.Checkbox("Бег CJ", cjRun) then
-        ini.config.cjRun = cjRun[0]
-        inicfg.save(ini, "NeoFuck")
+        applyCJState(cjRun[0])
     end
 end
 
@@ -348,6 +348,52 @@ function mainLoop(screenW, screenH)
     drawServerTime(screenW, screenH, font, offsetY)
 end
 
+-- Хук для включения анимации бега CJ при инициализации игры
+local hook = require 'lib.samp.events'
+hook["onInitGame"] = function(playerId, hostName, settings, vehicleModels)
+    if ini and ini.config and ini.config.cjRun then
+        settings.useCJWalk = true
+    end
+    return {playerId, hostName, settings, vehicleModels}
+end
+
+applyCJState = function(state)
+    ini.config.cjRun = state
+    cjRun[0] = state
+    inicfg.save(ini, "NeoFuck")
+
+    -- Уведомление в чат
+    pcall(function()
+        sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} CJ-run: " .. (state and "ON" or "OFF"), -1)
+    end)
+
+    -- Логика смены скина на CJ
+    if doesCharExist(PLAYER_PED) then
+        local _, id = sampGetPlayerIdByCharHandle(PLAYER_PED)
+        if state then
+            -- Включаем бег: сохраняем текущий скин и переходим на CJ (74)
+            idskin = getCharModel(PLAYER_PED)
+            local bs = raknetNewBitStream()
+            raknetBitStreamWriteInt32(bs, id)
+            raknetBitStreamWriteInt32(bs, 74)  -- CJ скин
+            raknetEmulRpcReceiveBitStream(153, bs)
+            raknetDeleteBitStream(bs)
+        else
+            -- Отключаем бег: возвращаем исходный скин
+            if idskin then
+                local bs = raknetNewBitStream()
+                raknetBitStreamWriteInt32(bs, id)
+                raknetBitStreamWriteInt32(bs, idskin)
+                raknetEmulRpcReceiveBitStream(153, bs)
+                raknetDeleteBitStream(bs)
+            end
+        end
+    end
+
+    -- Также пытаемся установить флаг памяти для совместимости
+    pcall(function() memory.setint8(0xB7CEE4, state and 1 or 0) end)
+end
+
 -- Главная функция
 function main()
     while not isSampAvailable() do wait(100) end
@@ -360,6 +406,11 @@ function main()
                 ui_open[0] = not ui_open[0]
                 imgui.ShowCursor = ui_open[0]
                 print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
+                return false
+            end
+            if cmd == "/cj" then
+                applyCJState(not ini.config.cjRun)
+                sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} CJ-run: " .. (ini.config.cjRun and "ON" or "OFF"), -1)
                 return false
             end
         end
@@ -389,17 +440,32 @@ function main()
         end)
     end
 
+    -- Команда для MoonLoader: переключатель CJ
+    if not isMonetLoader() then
+        sampRegisterChatCommand("cj", function()
+            applyCJState(not ini.config.cjRun)
+            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} CJ-run: " .. (ini.config.cjRun and "ON" or "OFF"), -1)
+        end)
+    end
+
     -- Основной цикл
     while true do
         mainLoop(screenW, screenH)
-        if ini.config.cjRun then
-            memory.setint8(0xB7CEE4, 1)
-        else
-            memory.setint8(0xB7CEE4, 0)
+
+        -- Всегда обновляем флаг памяти для совместимости (безопасно через pcall),
+        -- чтобы изменения из UI применялись немедленно без перезахода.
+        pcall(function() memory.setint8(0xB7CEE4, ini.config.cjRun and 1 or 0) end)
+
+        -- Если доступна функция движка, применяем локально анимацию бега
+        if doesCharExist(PLAYER_PED) and isCharOnFoot(PLAYER_PED) and type(setCharRunning) == "function" then
+            setCharRunning(PLAYER_PED, ini.config.cjRun)
         end
+
         wait(0)
     end
 end
+
+
 
 -- Инициализация ImGui
 imgui.OnInitialize(function()
@@ -449,13 +515,6 @@ imgui.OnInitialize(function()
     style.Colors[imgui.Col.ButtonActive]    = imgui.ImVec4(0.8, 0.0, 0.0, 1.0)
     style.Colors[imgui.Col.Text]            = imgui.ImVec4(1.0, 1.0, 1.0, 1.0)
 end)
+
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
+ц
