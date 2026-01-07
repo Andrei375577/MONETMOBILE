@@ -17,17 +17,21 @@ local scale  = isMonetLoader() and 1.4 or 1
 local scale1 = isMonetLoader() and 1.7 or 1
 local scale2 = isMonetLoader() and 0.59 or 1
 
--- Подключение библиотек (работает и в MonetLoader, и в MoonLoader)
-pcall(function() require("lib.moonloader") end)  -- MoonLoader
+-- Подключение библиотек (отдельно для каждого загрузчика)
+if not isMonetLoader() then
+    require("lib.moonloader")  -- Только для MoonLoader
+end
 require("sampfuncs")
 require("lib.samp.events")
 
--- Условное подключение модулей (для MoonLoader)
+-- Условное подключение модулей (только для MoonLoader)
 local wm, vkeys
-pcall(function()
-    wm    = require("windows.message")
-    vkeys = require("vkeys")
-end)
+if not isMonetLoader() then
+    pcall(function()
+        wm    = require("windows.message")
+        vkeys = require("vkeys")
+    end)
+end
 
 local memory  = require("memory")
 local ffi     = require("ffi")
@@ -414,18 +418,20 @@ function main()
         end
     else
         -- MoonLoader: используем sampRegisterChatCommand
-        sampRegisterChatCommand("gg", function()
-            ui_open[0] = not ui_open[0]
-            imgui.ShowCursor = ui_open[0]
-            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено", -1)
-        end)
+        if sampRegisterChatCommand then
+            sampRegisterChatCommand("gg", function()
+                ui_open[0] = not ui_open[0]
+                imgui.ShowCursor = ui_open[0]
+                sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено", -1)
+            end)
 
-        sampRegisterChatCommand("cj", function()
-            applyCJState(not ini.config.cjRun)
-        end)
+            sampRegisterChatCommand("cj", function()
+                applyCJState(not ini.config.cjRun)
+            end)
+        end
 
         -- Обработка клавиш для MoonLoader
-        if vkeys then
+        if vkeys and addEventHandler then
             addEventHandler('onWindowMessage', function(msg, wparam, lparam)
                 if msg == 0x100 then
                     if wparam == vkeys.VK_ESCAPE and ui_open[0] and not isPauseMenuActive() then
