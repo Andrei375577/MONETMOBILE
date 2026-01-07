@@ -41,14 +41,24 @@ local fa      = require("fAwesome6_solid")
 local inicfg  = require("inicfg")
 local sampev  = require("samp.events")
 local events  = require("samp.events")
-local screen_resX, screen_resY = getScreenResolution()
 
--- Кодировка
-require("encoding").default = "CP1251"
+-- Безопасная загрузка getScreenResolution (может быть недоступна в MonetLoader на момент загрузки)
+local screen_resX, screen_resY = 0, 0
+pcall(function()
+    screen_resX, screen_resY = getScreenResolution()
+end)
+
+-- Кодировка (безопасно)
+pcall(function()
+    require("encoding").default = "CP1251"
+end)
 local u8 = require("encoding").UTF8
 
 -- Разрешение экрана
-local sizeX, sizeY = getScreenResolution()
+local sizeX, sizeY = 0, 0
+pcall(function()
+    sizeX, sizeY = getScreenResolution()
+end)
 
 -- Данные кнопок
 local buttons = {
@@ -99,8 +109,11 @@ local idskin = nil  -- переменная для хранения исходн
 
 -- Опции
 
--- Шрифт
-local font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
+-- Шрифт (безопасно с проверкой)
+local font
+pcall(function()
+    font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
+end)
 
 -- Неиспользуемые переменные (оставлены для совместимости)
 local oX, oY = 250, 430
