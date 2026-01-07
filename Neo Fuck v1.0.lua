@@ -413,42 +413,52 @@ imgui.OnInitialize(function()
     imgui.SwitchContext()
 
     -- Стили интерфейса
-    local style = imgui.GetStyle()
-    style.WindowPadding     = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-    style.FramePadding      = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-    style.ItemSpacing       = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-    style.ItemInnerSpacing  = imgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
-    style.TouchExtraPadding = imgui.ImVec2(0, 0)
-    style.IndentSpacing     = 0
-    style.ScrollbarSize     = 10 * MONET_DPI_SCALE
-    style.GrabMinSize       = 10 * MONET_DPI_SCALE
-    style.WindowBorderSize  = 0
-    style.ChildBorderSize   = 1 * MONET_DPI_SCALE
-    style.PopupBorderSize   = 0
-    style.FrameBorderSize   = 0
-    style.TabBorderSize     = 0
-    style.WindowRounding    = 8 * MONET_DPI_SCALE
-    style.ChildRounding     = 8 * MONET_DPI_SCALE
-    style.FrameRounding     = 8 * MONET_DPI_SCALE
-    style.PopupRounding     = 8 * MONET_DPI_SCALE
-    style.ScrollbarRounding = 8 * MONET_DPI_SCALE
-    style.GrabRounding      = 8 * MONET_DPI_SCALE
-    style.TabRounding       = 8 * MONET_DPI_SCALE
-    style.WindowTitleAlign  = imgui.ImVec2(0.5, 0.5)
-    style.ButtonTextAlign   = imgui.ImVec2(0.5, 0.5)
-    style.SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
-
-    -- Цвета (красная тема)
-    style.Colors[imgui.Col.FrameBg]         = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.FrameBgHovered]  = imgui.ImVec4(0.35, 0.35, 0.35, 1.0)
-    style.Colors[imgui.Col.FrameBgActive]   = imgui.ImVec4(0.6, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.CheckMark]       = imgui.ImVec4(1.0, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.WindowBg]        = imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
-    style.Colors[imgui.Col.ChildBg]         = imgui.ImVec4(0.15, 0.15, 0.15, 1.0)
-    style.Colors[imgui.Col.Button]          = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.ButtonHovered]   = imgui.ImVec4(1.0, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.ButtonActive]    = imgui.ImVec4(0.8, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.Text]            = imgui.ImVec4(1.0, 1.0, 1.0, 1.0)
+    imgui.GetStyle().FramePadding = imgui.ImVec2(5, 5)
+	imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
+	imgui.GetStyle().WindowPadding = imgui.ImVec2(8, 8)
+	imgui.GetStyle().ChildWindowRounding = 9
+	imgui.GetStyle().FrameRounding = 6
+	imgui.GetStyle().Colors[imgui.Col.Text] = imgui.ImVec4(0.95, 0.96, 0.98, 1)
+	imgui.GetStyle().Colors[imgui.Col.TextDisabled] = imgui.ImVec4(0.36, 0.42, 0.47, 1)
+	imgui.GetStyle().Colors[imgui.Col.WindowBg] = imgui.ImVec4(0.15, 0.18, 0.22, 0)
+	imgui.GetStyle().Colors[imgui.Col.ChildWindowBg] = imgui.ImVec4(0.15, 0.18, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.PopupBg] = imgui.ImVec4(0.08, 0.08, 0.08, 0.94)
+	imgui.GetStyle().Colors[imgui.Col.Border] = imgui.ImVec4(0.43, 0.43, 0.5, 0.5)
+	imgui.GetStyle().Colors[imgui.Col.BorderShadow] = imgui.ImVec4(0, 0, 0, 0)
+	imgui.GetStyle().Colors[imgui.Col.FrameBg] = imgui.ImVec4(0.2, 0.25, 0.29, 1)
+	imgui.GetStyle().Colors[imgui.Col.FrameBgHovered] = imgui.ImVec4(0.12, 0.2, 0.28, 1)
+	imgui.GetStyle().Colors[imgui.Col.FrameBgActive] = imgui.ImVec4(0.09, 0.12, 0.14, 1)
+	imgui.GetStyle().Colors[imgui.Col.TitleBg] = imgui.ImVec4(0.09, 0.12, 0.14, 0.65)
+	imgui.GetStyle().Colors[imgui.Col.TitleBgCollapsed] = imgui.ImVec4(0, 0, 0, 0.51)
+	imgui.GetStyle().Colors[imgui.Col.TitleBgActive] = imgui.ImVec4(0.08, 0.1, 0.12, 1)
+	imgui.GetStyle().Colors[imgui.Col.MenuBarBg] = imgui.ImVec4(0.15, 0.18, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.ScrollbarBg] = imgui.ImVec4(0.02, 0.02, 0.02, 0.39)
+	imgui.GetStyle().Colors[imgui.Col.ScrollbarGrab] = imgui.ImVec4(1.15, 0.28, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabHovered] = imgui.ImVec4(0.18, 0.22, 0.25, 1)
+	imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabActive] = imgui.ImVec4(0.09, 0.21, 0.31, 1)
+	imgui.GetStyle().Colors[imgui.Col.ComboBg] = imgui.ImVec4(0.2, 0.25, 0.29, 1)
+	imgui.GetStyle().Colors[imgui.Col.CheckMark] = imgui.ImVec4(1.15, 0.28, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.SliderGrab] = imgui.ImVec4(1.15, 0.18, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.SliderGrabActive] = imgui.ImVec4(1.15, 0.28, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.Button] = imgui.ImVec4(0.2, 0.25, 0.29, 1)
+	imgui.GetStyle().Colors[imgui.Col.ButtonHovered] = imgui.ImVec4(1.15, 0.18, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.ButtonActive] = imgui.ImVec4(1.15, 0.28, 0.22, 1)
+	imgui.GetStyle().Colors[imgui.Col.Header] = imgui.ImVec4(0.2, 0.25, 0.29, 0.55)
+	imgui.GetStyle().Colors[imgui.Col.HeaderHovered] = imgui.ImVec4(0.26, 0.59, 0.98, 0.8)
+	imgui.GetStyle().Colors[imgui.Col.HeaderActive] = imgui.ImVec4(0.26, 0.59, 0.98, 1)
+	imgui.GetStyle().Colors[imgui.Col.ResizeGrip] = imgui.ImVec4(0.26, 0.59, 0.98, 0.25)
+	imgui.GetStyle().Colors[imgui.Col.ResizeGripHovered] = imgui.ImVec4(0.26, 0.59, 0.98, 0.67)
+	imgui.GetStyle().Colors[imgui.Col.ResizeGripActive] = imgui.ImVec4(0.06, 0.05, 0.07, 1)
+	imgui.GetStyle().Colors[imgui.Col.CloseButton] = imgui.ImVec4(0.4, 0.39, 0.38, 0.16)
+	imgui.GetStyle().Colors[imgui.Col.CloseButtonHovered] = imgui.ImVec4(0.4, 0.39, 0.38, 0.39)
+	imgui.GetStyle().Colors[imgui.Col.CloseButtonActive] = imgui.ImVec4(0.4, 0.39, 0.38, 1)
+	imgui.GetStyle().Colors[imgui.Col.PlotLines] = imgui.ImVec4(0.61, 0.61, 0.61, 1)
+	imgui.GetStyle().Colors[imgui.Col.PlotLinesHovered] = imgui.ImVec4(1, 0.43, 0.35, 1)
+	imgui.GetStyle().Colors[imgui.Col.PlotHistogram] = imgui.ImVec4(0.9, 0.7, 0, 1)
+	imgui.GetStyle().Colors[imgui.Col.PlotHistogramHovered] = imgui.ImVec4(1, 0.6, 0, 1)
+	imgui.GetStyle().Colors[imgui.Col.TextSelectedBg] = imgui.ImVec4(0.25, 1, 0, 0.43)
+	imgui.GetStyle().Colors[imgui.Col.ModalWindowDarkening] = imgui.ImVec4(0.8, 0.8, 0.8, 0.15)
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+
