@@ -35,7 +35,7 @@ end
 local memory  = require("memory")
 local ffi     = require("ffi")
 local effil   = require("effil")
-local imgui   = require("mimgui")
+local mimgui   = require("mimgui")
 local fa      = require("fAwesome6_solid")
 local inicfg  = require("inicfg")
 local sampev  = require("samp.events")
@@ -448,6 +448,7 @@ style.Colors[mimgui.Col.Text]           = mimgui.ImVec4(1.0, 1.0, 1.0, 1.0)
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
 
