@@ -5,7 +5,7 @@
 --========================================================--
 
 local script_ver = 'v1.0'
-local imgui = mimgui
+
 
 -- Проверка окружения
 function isMonetLoader()
@@ -35,7 +35,7 @@ end
 local memory  = require("memory")
 local ffi     = require("ffi")
 local effil   = require("effil")
-local mimgui   = require("mimgui")
+local imgui   = require("mimgui")
 local fa      = require("fAwesome6_solid")
 local inicfg  = require("inicfg")
 local sampev  = require("samp.events")
@@ -410,11 +410,11 @@ imgui.OnInitialize(function()
     end
     imgui.SwitchContext()
 local style = mimgui.GetStyle()
-style.WindowPadding       = mimgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-style.FramePadding        = mimgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-style.ItemSpacing         = mimgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-style.ItemInnerSpacing    = mimgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
-style.TouchExtraPadding   = mimgui.ImVec2(0, 0)
+style.WindowPadding       = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+style.FramePadding        = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+style.ItemSpacing         = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+style.ItemInnerSpacing    = imgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
+style.TouchExtraPadding   = imgui.ImVec2(0, 0)
 style.IndentSpacing       = 0
 style.ScrollbarSize       = 10 * MONET_DPI_SCALE
 style.GrabMinSize         = 10 * MONET_DPI_SCALE
@@ -430,24 +430,25 @@ style.PopupRounding       = 8 * MONET_DPI_SCALE
 style.ScrollbarRounding   = 8 * MONET_DPI_SCALE
 style.GrabRounding        = 8 * MONET_DPI_SCALE
 style.TabRounding         = 8 * MONET_DPI_SCALE
-style.WindowTitleAlign    = mimgui.ImVec2(0.5, 0.5)
-style.ButtonTextAlign     = mimgui.ImVec2(0.5, 0.5)
-style.SelectableTextAlign = mimgui.ImVec2(0.5, 0.5)
+style.WindowTitleAlign    = imgui.ImVec2(0.5, 0.5)
+style.ButtonTextAlign     = imgui.ImVec2(0.5, 0.5)
+style.SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
 
 -- Цвета (красная тема)
-style.Colors[mimgui.Col.FrameBg]        = mimgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-style.Colors[mimgui.Col.FrameBgHovered] = mimgui.ImVec4(0.35, 0.35, 0.35, 1.0)
-style.Colors[mimgui.Col.FrameBgActive]  = mimgui.ImVec4(0.6, 0.0, 0.0, 1.0)
-style.Colors[mimgui.Col.CheckMark]      = mimgui.ImVec4(1.0, 0.0, 0.0, 1.0)
-style.Colors[mimgui.Col.WindowBg]       = mimgui.ImVec4(0.0, 0.0, 0.0, 0.0)
-style.Colors[mimgui.Col.ChildBg]        = mimgui.ImVec4(0.15, 0.15, 0.15, 1.0)
-style.Colors[mimgui.Col.Button]         = mimgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-style.Colors[mimgui.Col.ButtonHovered]  = mimgui.ImVec4(1.0, 0.2, 0.2, 1.0)
-style.Colors[mimgui.Col.ButtonActive]   = mimgui.ImVec4(0.8, 0.0, 0.0, 1.0)
-style.Colors[mimgui.Col.Text]           = mimgui.ImVec4(1.0, 1.0, 1.0, 1.0)
+style.Colors[mimgui.Col.FrameBg]        = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+style.Colors[mimgui.Col.FrameBgHovered] = imgui.ImVec4(0.35, 0.35, 0.35, 1.0)
+style.Colors[mimgui.Col.FrameBgActive]  = imgui.ImVec4(0.6, 0.0, 0.0, 1.0)
+style.Colors[mimgui.Col.CheckMark]      = imgui.ImVec4(1.0, 0.0, 0.0, 1.0)
+style.Colors[mimgui.Col.WindowBg]       = imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
+style.Colors[mimgui.Col.ChildBg]        = imgui.ImVec4(0.15, 0.15, 0.15, 1.0)
+style.Colors[mimgui.Col.Button]         = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+style.Colors[mimgui.Col.ButtonHovered]  = imgui.ImVec4(1.0, 0.2, 0.2, 1.0)
+style.Colors[mimgui.Col.ButtonActive]   = imgui.ImVec4(0.8, 0.0, 0.0, 1.0)
+style.Colors[mimgui.Col.Text]           = imgui.ImVec4(1.0, 1.0, 1.0, 1.0)
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
 
