@@ -408,47 +408,46 @@ imgui.OnInitialize(function()
         fa.Init()
     end
     imgui.SwitchContext()
+local style = mimgui.GetStyle()
+style.WindowPadding       = mimgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+style.FramePadding        = mimgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+style.ItemSpacing         = mimgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
+style.ItemInnerSpacing    = mimgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
+style.TouchExtraPadding   = mimgui.ImVec2(0, 0)
+style.IndentSpacing       = 0
+style.ScrollbarSize       = 10 * MONET_DPI_SCALE
+style.GrabMinSize         = 10 * MONET_DPI_SCALE
+style.WindowBorderSize    = 0
+style.ChildBorderSize     = 1 * MONET_DPI_SCALE
+style.PopupBorderSize     = 0
+style.FrameBorderSize     = 0
+style.TabBorderSize       = 0
+style.WindowRounding      = 8 * MONET_DPI_SCALE
+style.ChildRounding       = 8 * MONET_DPI_SCALE
+style.FrameRounding       = 8 * MONET_DPI_SCALE
+style.PopupRounding       = 8 * MONET_DPI_SCALE
+style.ScrollbarRounding   = 8 * MONET_DPI_SCALE
+style.GrabRounding        = 8 * MONET_DPI_SCALE
+style.TabRounding         = 8 * MONET_DPI_SCALE
+style.WindowTitleAlign    = mimgui.ImVec2(0.5, 0.5)
+style.ButtonTextAlign     = mimgui.ImVec2(0.5, 0.5)
+style.SelectableTextAlign = mimgui.ImVec2(0.5, 0.5)
 
-    -- Стили интерфейса
-    local style = imgui.GetStyle()
-    style.WindowPadding     = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-    style.FramePadding      = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-    style.ItemSpacing       = imgui.ImVec2(5 * MONET_DPI_SCALE, 5 * MONET_DPI_SCALE)
-    style.ItemInnerSpacing  = imgui.ImVec2(2 * MONET_DPI_SCALE, 2 * MONET_DPI_SCALE)
-    style.TouchExtraPadding = imgui.ImVec2(0, 0)
-    style.IndentSpacing     = 0
-    style.ScrollbarSize     = 10 * MONET_DPI_SCALE
-    style.GrabMinSize       = 10 * MONET_DPI_SCALE
-    style.WindowBorderSize  = 0
-    style.ChildBorderSize   = 1 * MONET_DPI_SCALE
-    style.PopupBorderSize   = 0
-    style.FrameBorderSize   = 0
-    style.TabBorderSize     = 0
-    style.WindowRounding    = 8 * MONET_DPI_SCALE
-    style.ChildRounding     = 8 * MONET_DPI_SCALE
-    style.FrameRounding     = 8 * MONET_DPI_SCALE
-    style.PopupRounding     = 8 * MONET_DPI_SCALE
-    style.ScrollbarRounding = 8 * MONET_DPI_SCALE
-    style.GrabRounding      = 8 * MONET_DPI_SCALE
-    style.TabRounding       = 8 * MONET_DPI_SCALE
-    style.WindowTitleAlign  = imgui.ImVec2(0.5, 0.5)
-    style.ButtonTextAlign   = imgui.ImVec2(0.5, 0.5)
-    style.SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
-
-    -- Цвета (красная тема)
-    style.Colors[imgui.Col.FrameBg]         = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.FrameBgHovered]  = imgui.ImVec4(0.35, 0.35, 0.35, 1.0)
-    style.Colors[imgui.Col.FrameBgActive]   = imgui.ImVec4(0.6, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.CheckMark]       = imgui.ImVec4(1.0, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.WindowBg]        = imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
-    style.Colors[imgui.Col.ChildBg]         = imgui.ImVec4(0.15, 0.15, 0.15, 1.0)
-    style.Colors[imgui.Col.Button]          = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.ButtonHovered]   = imgui.ImVec4(1.0, 0.2, 0.2, 1.0)
-    style.Colors[imgui.Col.ButtonActive]    = imgui.ImVec4(0.8, 0.0, 0.0, 1.0)
-    style.Colors[imgui.Col.Text]            = imgui.ImVec4(1.0, 1.0, 1.0, 1.0)
+-- Цвета (красная тема)
+style.Colors[mimgui.Col.FrameBg]        = mimgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+style.Colors[mimgui.Col.FrameBgHovered] = mimgui.ImVec4(0.35, 0.35, 0.35, 1.0)
+style.Colors[mimgui.Col.FrameBgActive]  = mimgui.ImVec4(0.6, 0.0, 0.0, 1.0)
+style.Colors[mimgui.Col.CheckMark]      = mimgui.ImVec4(1.0, 0.0, 0.0, 1.0)
+style.Colors[mimgui.Col.WindowBg]       = mimgui.ImVec4(0.0, 0.0, 0.0, 0.0)
+style.Colors[mimgui.Col.ChildBg]        = mimgui.ImVec4(0.15, 0.15, 0.15, 1.0)
+style.Colors[mimgui.Col.Button]         = mimgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+style.Colors[mimgui.Col.ButtonHovered]  = mimgui.ImVec4(1.0, 0.2, 0.2, 1.0)
+style.Colors[mimgui.Col.ButtonActive]   = mimgui.ImVec4(0.8, 0.0, 0.0, 1.0)
+style.Colors[mimgui.Col.Text]           = mimgui.ImVec4(1.0, 1.0, 1.0, 1.0)
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
 
