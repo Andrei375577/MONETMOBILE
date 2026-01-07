@@ -17,19 +17,17 @@ local scale  = isMonetLoader() and 1.4 or 1
 local scale1 = isMonetLoader() and 1.7 or 1
 local scale2 = isMonetLoader() and 0.59 or 1
 
--- Подключение библиотек
-if not isMonetLoader() then
-    require("lib.moonloader")
-end
+-- Подключение библиотек (работает и в MonetLoader, и в MoonLoader)
+pcall(function() require("lib.moonloader") end)  -- MoonLoader
 require("sampfuncs")
 require("lib.samp.events")
 
--- Условное подключение модулей
+-- Условное подключение модулей (для MoonLoader)
 local wm, vkeys
-if not isMonetLoader() then
+pcall(function()
     wm    = require("windows.message")
     vkeys = require("vkeys")
-end
+end)
 
 local memory  = require("memory")
 local ffi     = require("ffi")
@@ -399,56 +397,54 @@ function main()
     while not isSampAvailable() do wait(100) end
     local screenW, screenH = getScreenResolution()
 
+    -- Единая обработка команды для обоих загрузчиков
     if isMonetLoader() then
-        -- Обработка команд для MonetLoader
+        -- MonetLoader: используем sampev.onSendCommand
         sampev.onSendCommand = function(cmd)
             if cmd == "/gg" then
                 ui_open[0] = not ui_open[0]
                 imgui.ShowCursor = ui_open[0]
-                print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
+                print("[NeoFuck] Окно переключено")
                 return false
             end
             if cmd == "/cj" then
                 applyCJState(not ini.config.cjRun)
-                sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} CJ-run: " .. (ini.config.cjRun and "ON" or "OFF"), -1)
                 return false
             end
         end
     else
-        -- Обработка команд для MoonLoader
+        -- MoonLoader: используем sampRegisterChatCommand
         sampRegisterChatCommand("gg", function()
             ui_open[0] = not ui_open[0]
             imgui.ShowCursor = ui_open[0]
-            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено через MoonLoader команду /gg", -1)
+            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено", -1)
+        end)
+
+        sampRegisterChatCommand("cj", function()
+            applyCJState(not ini.config.cjRun)
         end)
 
         -- Обработка клавиш для MoonLoader
-        addEventHandler('onWindowMessage', function(msg, wparam, lparam)
-            if msg == 0x100 then
-                if wparam == vkeys.VK_ESCAPE and ui_open[0] and not isPauseMenuActive() then
-                    consumeWindowMessage(true, false)
-                    ui_open[0] = false
-                    imgui.ShowCursor = false
-                    return 0
+        if vkeys then
+            addEventHandler('onWindowMessage', function(msg, wparam, lparam)
+                if msg == 0x100 then
+                    if wparam == vkeys.VK_ESCAPE and ui_open[0] and not isPauseMenuActive() then
+                        consumeWindowMessage(true, false)
+                        ui_open[0] = false
+                        imgui.ShowCursor = false
+                        return 0
+                    end
+                    if wparam == vkeys.VK_F12 then
+                        ui_open[0] = not ui_open[0]
+                        imgui.ShowCursor = ui_open[0]
+                        return 0
+                    end
                 end
-                if wparam == vkeys.VK_F12 then
-                    ui_open[0] = not ui_open[0]
-                    imgui.ShowCursor = ui_open[0]
-                    return 0
-                end
-            end
-        end)
+            end)
+        end
     end
 
-    -- Команда для MoonLoader: переключатель CJ
-    if not isMonetLoader() then
-        sampRegisterChatCommand("cj", function()
-            applyCJState(not ini.config.cjRun)
-            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} CJ-run: " .. (ini.config.cjRun and "ON" or "OFF"), -1)
-        end)
-    end
-
-    -- Основной цикл
+    -- Основной цикл (единый для обоих загрузчиков)
     while true do
         mainLoop(screenW, screenH)
 
@@ -517,4 +513,3 @@ imgui.OnInitialize(function()
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-ц
