@@ -17,19 +17,17 @@ local scale  = isMonetLoader() and 1.4 or 1
 local scale1 = isMonetLoader() and 1.7 or 1
 local scale2 = isMonetLoader() and 0.59 or 1
 
--- Подключение библиотек
-if not isMonetLoader() then
-    require("lib.moonloader")
-end
+-- Подключение библиотек (работает и в MonetLoader, и в MoonLoader)
+pcall(function() require("lib.moonloader") end)  -- MoonLoader
 require("sampfuncs")
 require("lib.samp.events")
 
--- Условное подключение модулей
+-- Условное подключение модулей (для MoonLoader)
 local wm, vkeys
-if not isMonetLoader() then
+pcall(function()
     wm    = require("windows.message")
     vkeys = require("vkeys")
-end
+end)
 
 local memory  = require("memory")
 local ffi     = require("ffi")
@@ -50,12 +48,12 @@ local sizeX, sizeY = getScreenResolution()
 
 -- Данные кнопок
 local buttons = {
-    {label = "Старт",      action = function() sampAddChatMessage(u8("Заглушка: старт")) end},
-    {label = "Настройки",  action = function() sampAddChatMessage("Заглушка: настройки") end},
-    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход") end},
-    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход") end},
-    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход") end},
-    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход") end},
+    {label = "Старт",      action = function() sampAddChatMessage(u8("Заглушка: старт", -1)) end},
+    {label = "Настройки",  action = function() sampAddChatMessage("Заглушка: настройки", -1) end},
+    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход", -1) end},
+    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход", -1) end},
+    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход", -1) end},
+    {label = "Выход",      action = function() sampAddChatMessage("Заглушка: выход", -1) end},
 }
 
 -- Цвета
@@ -70,12 +68,13 @@ local colors = {
 
 -- Настройки по умолчанию
 local defaultIni = {
-    config = {
-        watermark = false,
-        showTime  = false,
-        cjRun = false,
-    }
+	config = {
+		cjRun = false, 
+        showTime  = false, 
+		watermark = false,
+	}
 }
+
 
 -- Загрузка конфигурации
 local ini = inicfg.load(defaultIni, "NeoFuck")
@@ -85,16 +84,35 @@ if not ini then
 end
 
 -- Переменные ImGui
-local new       = imgui.new
-local ui_open   = new.bool(false)
+local new        = imgui.new
+local ui_open    = new.bool(false)
 local currentTab = new.int(1)
-local watermark = imgui.new.bool(ini.config.watermark)
-local showTime  = imgui.new.bool(ini.config.showTime)
-local cjRun     = imgui.new.bool(ini.config.cjRun)
-local offsetY   = 60 * scale
-
+local watermark  = imgui.new.bool(ini.config.watermark)
+local showTime   = imgui.new.bool(ini.config.showTime)
+local cjRun      = imgui.new.bool(ini.config.cjRun)
+local offsetY    = 60 * scale
+local idskin = nil  -- переменная для хранения исходного скина
+local openbutton
+if isMonetLoader then 
+		openbutton = new.bool(true)
+	else
+		openbutton = new.bool(false)
+end 
 -- Опции
+local function setCJRun(state)
+    cjRun[0] = state
+    ini.config.cjRun = state
+    inicfg.save(ini, "NeoFuck")
 
+    if state then
+        setAnimGroupForChar(PLAYER_PED, "PLAYER")
+        
+    else
+        setAnimGroupForChar(PLAYER_PED,
+            usePlayerAnimGroup and "PLAYER" or isCharMale(PLAYER_PED) and "MAN" or "WOMAN")
+        
+    end
+end
 -- Шрифт
 local font = renderCreateFont("Arial Black", 28 * scale, 12 * scale)
 
@@ -141,7 +159,7 @@ function buttonsTab()
 end
 
 -- Вкладка авто
-function autoTab()
+function carTab()
     -- Заглушка для вкладки "Авто"
 end
 
@@ -149,10 +167,10 @@ end
 function cheatsTab()
     imgui.SetCursorPos(imgui.ImVec2(15, 10 * MONET_DPI_SCALE))
     if imgui.Checkbox("Бег CJ", cjRun) then
-        ini.config.cjRun = cjRun[0]
-        inicfg.save(ini, "NeoFuck")
+        setCJRun(cjRun[0])
     end
 end
+
 
 -- Вкладка остального
 function otherTab()
@@ -177,7 +195,7 @@ end
 local tabContent = {
     mainTab,
     buttonsTab,
-    autoTab,
+    carTab,
     cheatsTab,
     otherTab,
     settingsTab
@@ -328,6 +346,26 @@ imgui.OnFrame(
     end
 )
 
+-- Полоска
+imgui.OnFrame(function() return openbutton[0] end, function(self)
+    imgui.PushStyleColor(imgui.Col.WindowBg, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
+    imgui.PushStyleColor(imgui.Col.Border, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
+    imgui.SetNextWindowSize(imgui.ImVec2(300, 50), imgui.Cond.Always)
+    local scrx, scry = getScreenResolution()
+    imgui.SetNextWindowPos(imgui.ImVec2(scrx / 2, scry - 27), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+    imgui.Begin('##poloska', openbutton, imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoScrollbar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove)
+    imgui.SetCursorPos(imgui.ImVec2(0, 30))
+    local dl = imgui.GetWindowDrawList()
+    local p = imgui.GetCursorScreenPos()
+    dl:AddRectFilled(p, imgui.ImVec2(p.x + 293, p.y + 10), imgui.ColorConvertFloat4ToU32(imgui.ImVec4(1.00, 1.00, 1.00, 1.00)), 10, 10)
+    imgui.SetCursorPos(imgui.ImVec2(0, 0))
+    if imgui.InvisibleButton('##hidemenu', imgui.GetWindowSize()) then
+        ui_open[0] = not ui_open[0]
+    end
+    imgui.PopStyleColor(2)
+    imgui.End()
+end)
+
 -- Функция отрисовки времени сервера
 function drawServerTime(screenW, screenH, font, offsetY)
     if showTime[0] then
@@ -352,55 +390,64 @@ function main()
     while not isSampAvailable() do wait(100) end
     local screenW, screenH = getScreenResolution()
 
+    -- Единая обработка команды для обоих загрузчиков
     if isMonetLoader() then
-        -- Обработка команд для MonetLoader
+        -- MonetLoader: используем sampev.onSendCommand
         sampev.onSendCommand = function(cmd)
             if cmd == "/gg" then
                 ui_open[0] = not ui_open[0]
                 imgui.ShowCursor = ui_open[0]
-                print("[NeoFuck] Окно переключено через MonetLoader команду /gg")
+                print("[NeoFuck] Окно переключено")
                 return false
             end
+		    if cmd == "/cj" then
+		        setCJRun(not cjRun[0])
+		        return false
+		    end
         end
     else
-        -- Обработка команд для MoonLoader
+        -- MoonLoader: используем sampRegisterChatCommand
         sampRegisterChatCommand("gg", function()
             ui_open[0] = not ui_open[0]
             imgui.ShowCursor = ui_open[0]
-            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено через MoonLoader команду /gg", -1)
+            sampAddChatMessage("{FF0000}[NeoFuck]{FFFFFF} Окно переключено", -1)
+        end)
+
+        sampRegisterChatCommand("cj", function()
+            applyCJState(not ini.config.cjRun)
         end)
 
         -- Обработка клавиш для MoonLoader
-        addEventHandler('onWindowMessage', function(msg, wparam, lparam)
-            if msg == 0x100 then
-                if wparam == vkeys.VK_ESCAPE and ui_open[0] and not isPauseMenuActive() then
-                    consumeWindowMessage(true, false)
-                    ui_open[0] = false
-                    imgui.ShowCursor = false
-                    return 0
+        if vkeys then
+            addEventHandler('onWindowMessage', function(msg, wparam, lparam)
+                if msg == 0x100 then
+                    if wparam == vkeys.VK_ESCAPE and ui_open[0] and not isPauseMenuActive() then
+                        consumeWindowMessage(true, false)
+                        ui_open[0] = false
+                        imgui.ShowCursor = false
+                        return 0
+                    end
+                    if wparam == vkeys.VK_F12 then
+                        ui_open[0] = not ui_open[0]
+                        imgui.ShowCursor = ui_open[0]
+                        return 0
+                    end
                 end
-                if wparam == vkeys.VK_F12 then
-                    ui_open[0] = not ui_open[0]
-                    imgui.ShowCursor = ui_open[0]
-                    return 0
-                end
-            end
-        end)
+            end)
+        end
     end
 
-    -- Основной цикл
+    -- Основной цикл (единый для обоих загрузчиков)
     while true do
         mainLoop(screenW, screenH)
-        if ini.config.cjRun then
-            memory.setint8(0xB7CEE4, 1)
-        else
-            memory.setint8(0xB7CEE4, 0)
-        end
+
+        -- Всегда обновляем флаг памяти для совместимости (безопасно через pcall),
+        -- чтобы изменения из UI применялись немедленно без перезахода.
+        
+
         wait(0)
     end
 end
-
-
 
 -- Инициализация ImGui
 imgui.OnInitialize(function()
@@ -452,3 +499,4 @@ imgui.OnInitialize(function()
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
+
