@@ -11,6 +11,10 @@ function isMonetLoader()
     return MONET_VERSION ~= nil
 end
 
+function isMoonLoader()
+    return MOON_VERSION ~= nil
+end
+
 -- Масштабирование для разных загрузчиков
 if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 local scale  = isMonetLoader() and 1.4 or 1
@@ -92,12 +96,13 @@ local showTime   = imgui.new.bool(ini.config.showTime)
 local cjRun      = imgui.new.bool(ini.config.cjRun)
 local offsetY    = 60 * scale
 local idskin = nil  -- переменная для хранения исходного скина
-local openbutton
-if isMonetLoader then 
-		openbutton = new.bool(true)
-	else
-		openbutton = new.bool(false)
-end 
+local openbutton = new.bool(false) -- дефолт для MoonLoader
+
+if MONET_VERSION ~= nil then
+    openbutton[0] = true -- или openbutton = new.bool(true), если хочешь пересоздать
+end
+
+
 -- Опции
 local function setCJRun(state)
     cjRun[0] = state
@@ -414,7 +419,8 @@ function main()
         end)
 
         sampRegisterChatCommand("cj", function()
-            applyCJState(not ini.config.cjRun)
+            setCJRun(not cjRun[0])
+            return false
         end)
 
         -- Обработка клавиш для MoonLoader
@@ -499,4 +505,3 @@ imgui.OnInitialize(function()
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
