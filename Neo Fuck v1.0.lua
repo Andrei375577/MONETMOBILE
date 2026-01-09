@@ -98,7 +98,7 @@ if MONET_VERSION ~= nil then
     openbutton[0] = true -- или openbutton = new.bool(true), если хочешь пересоздать
 end
 
-local update_window_open = imgui.new.bool(false)
+local update_window_open = imgui.new.bool(true)
 local update_status = imgui.new.char[512]("Нажмите кнопку для проверки")
 local update_checking = imgui.new.bool(false)
 local update_result_color = imgui.ImVec4(1, 1, 1, 1)
@@ -454,7 +454,7 @@ imgui.OnInitialize(function()
     style.Colors[imgui.Col.Text]            = imgui.ImVec4(1.0, 1.0, 1.0, 1.0)
 end)
 
----------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------function checkUpdate()
 function checkUpdate()
     update_checking[0] = true
     ffi.copy(update_status, "Проверка обновлений...")
@@ -493,9 +493,41 @@ function checkUpdate()
     end)
 end
 
+function downloadAndReplaceScript()
+    update_checking[0] = true
+    ffi.copy(update_status, "Загрузка новой версии...")
+    lua_thread.create(function()
+        local ok, result = pcall(function()
+            local req = require("requests")
+            local response = req.get(update_url)
+            if response.status_code == 200 then
+                return response.text
+            else
+                return nil
+            end
+        end)
+
+        if ok and result then
+            local file = io.open(thisScript().path, "w+")
+            if file then
+                file:write(result)
+                file:close()
+                ffi.copy(update_status, "✅ Скрипт обновлён. Перезапустите его вручную.")
+                update_result_color = imgui.ImVec4(0, 1, 0, 1)
+            else
+                ffi.copy(update_status, "❌ Не удалось записать файл")
+                update_result_color = imgui.ImVec4(1, 0, 0, 1)
+            end
+        else
+            ffi.copy(update_status, "❌ Ошибка загрузки обновления")
+            update_result_color = imgui.ImVec4(1, 0, 0, 1)
+        end
+        update_checking[0] = false
+    end)
+end
 
 imgui.OnFrame(function() return update_window_open[0] end, function()
-    local winW, winH = 520, 200
+    local winW, winH = 540, 220
     imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.FirstUseEver)
     if imgui.Begin("NeoFuck Обновление", update_window_open, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse) then
         imgui.TextColored(colors.blue, "Проверка обновлений скрипта")
@@ -509,6 +541,13 @@ imgui.OnFrame(function() return update_window_open[0] end, function()
         imgui.TextColored(update_result_color, ffi.string(update_status))
         imgui.Spacing()
 
+        if ffi.string(update_status):find("Обнаружено обновление") then
+            if imgui.Button("Скачать и заменить", imgui.ImVec2(220, 35)) and not update_checking[0] then
+                downloadAndReplaceScript()
+            end
+        end
+
+        imgui.Spacing()
         if imgui.Button("Закрыть", imgui.ImVec2(100, 30)) then
             update_window_open[0] = false
         end
