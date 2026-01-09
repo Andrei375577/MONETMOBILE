@@ -4,7 +4,7 @@
 --  Version: 1.0
 --========================================================--
 
-local script_ver = 'v2.0'
+local script_ver = 'BETA v1.0'
 
 -- Проверка окружения
 function isMonetLoader()
@@ -103,12 +103,15 @@ end
 local update_window_open = imgui.new.bool(false)
 local update_status = imgui.new.char[512]("Нажмите кнопку для проверки")
 local update_checking = imgui.new.bool(false)
+local update_progress = imgui.new.float(0.0)
 local update_result_color = imgui.ImVec4(1, 1, 1, 1)
 local update_url = "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/Neo%20Fuck.lua"
 local repo_owner = "Andrei375577"
 local repo_name  = "MONETMOBILE"
 local repo_file  = "Neo%20Fuck.lua"
 local latest_remote_sha = nil
+local latest_remote_msg = nil
+local latest_remote_date = nil
 
 -- Опции
 local function setCJRun(state)
@@ -501,6 +504,17 @@ function checkUpdate()
                 return nil, nil, nil
             end)
 
+            -- Сохраняем информацию о найденном коммите для отображения в UI
+            if okc and remote_sha then
+                latest_remote_sha  = remote_sha
+                latest_remote_date = remote_date or ""
+                latest_remote_msg  = remote_msg or ""
+            else
+                latest_remote_sha  = nil
+                latest_remote_date = nil
+                latest_remote_msg  = nil
+            end
+
             local file = io.open(thisScript().path, "r")
             if file then
                 local local_code = file:read("*a")
@@ -587,17 +601,24 @@ function downloadAndReplaceScript()
             local req = require("requests")
             local response_text, response_headers = nil, nil
             for i = 1, 5 do
+                -- Обновляем прогресс (псевдо-прогресс на период попыток)
+                update_progress[0] = (i - 1) / 5
                 local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
                 local response = req.get(request_url)
                 if response and response.status_code == 200 and response.text and #response.text > 0 then
                     response_text = response.text
                     response_headers = response.headers or {}
+                    update_progress[0] = 0.9
                     break
                 end
                 wait(2000)
             end
             return response_text, response_headers
         end)
+        -- если загрузка не удалась, обнулим прогресс
+        if not ok or not result then
+            update_progress[0] = 0
+        end
 
         if ok and result then
             local file = io.open(thisScript().path, "w+")
@@ -635,6 +656,9 @@ function downloadAndReplaceScript()
                 if etag then msg = msg .. " ETag: " .. tostring(etag) end
                 ffi.copy(update_status, msg)
                 update_result_color = imgui.ImVec4(0, 1, 0, 1)
+                update_progress[0] = 1.0
+                wait(300)
+                update_progress[0] = 0.0
             else
                 ffi.copy(update_status, "❌ Не удалось записать файл")
                 update_result_color = imgui.ImVec4(1, 0, 0, 1)
