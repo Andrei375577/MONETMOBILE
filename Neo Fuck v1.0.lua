@@ -4,7 +4,7 @@
 --  Version: 1.0
 --========================================================--
 
-local script_ver = 'v1.1'
+local script_ver = 'v1.0'
 
 -- Проверка окружения
 function isMonetLoader()
@@ -40,8 +40,9 @@ local events  = require("samp.events")
 local screen_resX, screen_resY = getScreenResolution()
 
 -- Кодировка
-require("encoding").default = "CP1251"
-local u8 = require("encoding").UTF8
+local encoding = require 'encoding'
+encoding.default = 'CP1251'
+local u8 = encoding.UTF8
 
 -- Разрешение экрана
 local sizeX, sizeY = getScreenResolution()
@@ -98,7 +99,7 @@ if MONET_VERSION ~= nil then
     openbutton[0] = true -- или openbutton = new.bool(true), если хочешь пересоздать
 end
 
-local update_window_open = imgui.new.bool(true)
+local update_window_open = imgui.new.bool(false)
 local update_status = imgui.new.char[512]("Нажмите кнопку для проверки")
 local update_checking = imgui.new.bool(false)
 local update_result_color = imgui.ImVec4(1, 1, 1, 1)
@@ -480,6 +481,7 @@ function checkUpdate()
                 else
                     ffi.copy(update_status, "⚠ Обнаружено обновление: код отличается от GitHub")
                     update_result_color = imgui.ImVec4(1, 0.6, 0, 1)
+                    update_window_open[0] = true
                 end
             else
                 ffi.copy(update_status, "❌ Ошибка чтения локального скрипта")
@@ -527,39 +529,79 @@ function downloadAndReplaceScript()
 end
 
 imgui.OnFrame(function() return update_window_open[0] end, function()
-    local winW, winH = 540, 220
-    imgui.SetNextWindowSize(imgui.ImVec2(winW, winH), imgui.Cond.FirstUseEver)
-    if imgui.Begin("NeoFuck Обновление", update_window_open, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse) then
-        imgui.TextColored(colors.blue, "Проверка обновлений скрипта")
-        imgui.Separator()
+    local scrx, scry = getScreenResolution()
+    imgui.SetNextWindowPos(imgui.ImVec2(scrx / 2, scry / 2), imgui.Cond.FirstUseEver, imgui.ImVec2(0.5, 0.5))
+    imgui.SetNextWindowSize(imgui.ImVec2(700, 435), imgui.Cond.FirstUseEver)
+    
+    if imgui.Begin("Обновление NeoFuck", update_window_open, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoScrollbar) then
+        imgui.BeginChild("update_child", imgui.ImVec2(0, 0), true)
 
-        if imgui.Button("Проверить обновление", imgui.ImVec2(220, 40)) and not update_checking[0] then
-            checkUpdate()
-        end
+        -- Собираем текст и измеряем ширину
+local text1 = "Neo "
+local text2 = "Fuck "
+local text3 = "Обнаружено обновление!"
+local total_width =
+    imgui.CalcTextSize(text1).x +
+    imgui.CalcTextSize(text2).x +
+    imgui.CalcTextSize(text3).x - 8 -- учтём сдвиг
 
-        imgui.Spacing()
-        imgui.TextColored(update_result_color, ffi.string(update_status))
-        imgui.Spacing()
+-- Центрируем по ширине окна
+local window_width = imgui.GetWindowSize().x
+local start_x = (window_width - total_width) / 2
+imgui.SetCursorPosX(start_x)
 
-        if ffi.string(update_status):find("Обнаружено обновление") then
-            if imgui.Button("Скачать и заменить", imgui.ImVec2(220, 35)) and not update_checking[0] then
-                downloadAndReplaceScript()
-            end
-        end
+-- Рисуем по частям
+imgui.TextColored(colors.blue, text1)
+imgui.SameLine()
+imgui.SetCursorPosX(imgui.GetCursorPosX() - 8)
+imgui.TextColored(colors.red, text2)
+imgui.SameLine()
+imgui.Text(text3)
 
-        imgui.Spacing()
-        if imgui.Button("Закрыть", imgui.ImVec2(100, 30)) then
+        
+        imgui.CenterText("---------------------------------------------------------------------------------------------------------------------------------------------------function")
+        
+        
+        
+        
+
+        
+        imgui.CenterText("")
+        
+        imgui.CenterText("Найдена новая версия скрипта.")
+        imgui.CenterText("Чтобы продолжить работу,")
+        imgui.CenterText("выберите один из вариантов ниже.")
+        imgui.CenterText("")
+
+        imgui.CenterText("")
+        
+
+        if imgui.Button(fa.FORWARD .. " ПРОПУСТИТЬ", imgui.ImVec2(325, 70)) then
             update_window_open[0] = false
         end
+			imgui.SameLine()
+        if imgui.Button(fa.DOWNLOAD .. " ОБНОВИТЬ", imgui.ImVec2(325, 70)) and not update_checking[0] then
+            downloadAndReplaceScript()
+        end
+
+        imgui.EndChild()
     end
     imgui.End()
 end)
+
+function imgui.CenterText(text)
+    local width = imgui.GetWindowWidth()
+    local height = imgui.GetWindowHeight()
+    local calc = imgui.CalcTextSize(text)
+    imgui.SetCursorPosX( width / 2 - calc.x / 2 )
+    imgui.Text(text)
+end
 
 -- Главная функция
 function main()
     while not isSampAvailable() do wait(100) end
     local screenW, screenH = getScreenResolution()
-	
+	checkUpdate()
     -- команда для ручного вызова
     sampRegisterChatCommand("update", function()
 		update_window_open[0] = true
