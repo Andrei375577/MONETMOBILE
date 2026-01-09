@@ -99,7 +99,7 @@ if MONET_VERSION ~= nil then
     openbutton[0] = true -- или openbutton = new.bool(true), если хочешь пересоздать
 end
 
-local update_window_open = imgui.new.bool(true)
+local update_window_open = imgui.new.bool(false)
 local update_status = imgui.new.char[512]("Нажмите кнопку для проверки")
 local update_checking = imgui.new.bool(false)
 local update_result_color = imgui.ImVec4(1, 1, 1, 1)
