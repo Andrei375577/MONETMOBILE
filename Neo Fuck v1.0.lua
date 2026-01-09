@@ -454,10 +454,9 @@ imgui.OnInitialize(function()
 end)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
-
 function checkUpdate()
     update_checking[0] = true
-    ffi.copy(update_status, "Проверка обновлений")
+    ffi.copy(update_status, "Проверка обновлений...")
     lua_thread.create(function()
         local ok, result = pcall(function()
             local req = require("requests")
@@ -475,19 +474,19 @@ function checkUpdate()
                 local local_code = file:read("*a")
                 file:close()
                 if local_code == result then
-                    ffi.copy(update_status, "У вас актуальная версия (код совпадает)")
-                    update_result_color = colors.green
-                    ffi.copy(update_status, "Обнаружено обновление: код отличается от GitHub")
+                    ffi.copy(update_status, "✅ У вас актуальная версия (код совпадает)")
+                    update_result_color = imgui.ImVec4(0, 1, 0, 1)
                 else
-                    update_result_color = colors.orange
+                    ffi.copy(update_status, "⚠ Обнаружено обновление: код отличается от GitHub")
+                    update_result_color = imgui.ImVec4(1, 0.6, 0, 1)
                 end
             else
-                ffi.copy(update_status, "Ошибка чтения локального скрипта")
-                update_result_color = colors.red
+                ffi.copy(update_status, "❌ Ошибка чтения локального скрипта")
+                update_result_color = imgui.ImVec4(1, 0, 0, 1)
             end
         else
-            ffi.copy(update_status, "Ошибка загрузки с GitHub")
-            update_result_color = colors.red
+            ffi.copy(update_status, "❌ Ошибка загрузки с GitHub")
+            update_result_color = imgui.ImVec4(1, 0, 0, 1)
         end
         update_checking[0] = false
     end)
@@ -506,7 +505,7 @@ imgui.OnFrame(function() return update_window_open[0] end, function()
         end
 
         imgui.Spacing()
-        imgui.TextColored(update_result_color, update_status)
+        imgui.TextColored(update_result_color, ffi.string(update_status))
         imgui.Spacing()
 
         if imgui.Button("Закрыть", imgui.ImVec2(100, 30)) then
