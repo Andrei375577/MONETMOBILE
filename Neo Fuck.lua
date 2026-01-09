@@ -4,7 +4,7 @@
 --  Version: 1.0
 --========================================================--
 
-local script_ver = 'v4.0'
+local script_ver = 'v1.0'
 
 -- Проверка окружения
 function isMonetLoader()
@@ -73,6 +73,7 @@ local defaultIni = {
 		cjRun = false, 
         showTime  = false, 
 		watermark = false,
+        lastCommit = "",
 	}
 }
 
@@ -104,6 +105,10 @@ local update_status = imgui.new.char[512]("Нажмите кнопку для п
 local update_checking = imgui.new.bool(false)
 local update_result_color = imgui.ImVec4(1, 1, 1, 1)
 local update_url = "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/Neo%20Fuck.lua"
+local repo_owner = "Andrei375577"
+local repo_name  = "MONETMOBILE"
+local repo_file  = "Neo%20Fuck.lua"
+local latest_remote_sha = nil
 
 -- Опции
 local function setCJRun(state)
@@ -460,19 +465,42 @@ function checkUpdate()
     update_checking[0] = true
     ffi.copy(update_status, "Проверка обновлений...")
     lua_thread.create(function()
-        local ok, result = pcall(function()
+        local ok, result, resp_headers = pcall(function()
             local req = require("requests")
-            -- Append timestamp to bypass CDN cache on raw.githubusercontent
-            local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
-            local response = req.get(request_url)
-            if response.status_code == 200 then
-                return response.text
-            else
-                return nil
+            local response_text, response_headers = nil, nil
+            for i = 1, 5 do
+                local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
+                local response = req.get(request_url)
+                if response and response.status_code == 200 and response.text and #response.text > 0 then
+                    response_text = response.text
+                    response_headers = response.headers or {}
+                    break
+                end
+                wait(2000) -- 2 seconds pause between attempts
             end
+            return response_text, response_headers
         end)
 
         if ok and result then
+            -- Try to get latest commit info from GitHub API (commits endpoint)
+            local okc, remote_sha, remote_date, remote_msg = pcall(function()
+                local req = require("requests")
+                local cjson = require("cjson")
+                for i = 1, 3 do
+                    local url = string.format("https://api.github.com/repos/%s/%s/commits?path=%s&per_page=1&_=%s", repo_owner, repo_name, repo_file, tostring(os.time()))
+                    local r = req.get(url)
+                    if r and r.status_code == 200 and r.text and #r.text > 0 then
+                        local tbl = cjson.decode(r.text)
+                        if type(tbl) == 'table' and #tbl >= 1 then
+                            local item = tbl[1]
+                            return item.sha, item.commit and item.commit.committer and item.commit.committer.date or nil, item.commit and item.commit.message or nil
+                        end
+                    end
+                    wait(1000)
+                end
+                return nil, nil, nil
+            end)
+
             local file = io.open(thisScript().path, "r")
             if file then
                 local local_code = file:read("*a")
@@ -480,13 +508,64 @@ function checkUpdate()
                 -- Normalize line endings to LF for consistent comparison across loaders
                 local local_norm = local_code:gsub("\r\n", "\n"):gsub("\r", "\n")
                 local result_norm = result:gsub("\r\n", "\n"):gsub("\r", "\n")
-                if local_norm == result_norm then
-                    ffi.copy(update_status, "✅ У вас актуальная версия (код совпадает)")
-                    update_result_color = imgui.ImVec4(0, 1, 0, 1)
+
+                -- If we have remote commit info, prefer it for quick checks
+                if okc and remote_sha then
+                    if ini.config.lastCommit == remote_sha then
+                        local msg = "✅ У вас актуальная версия (commit: " .. string.sub(remote_sha, 1, 7) .. ")"
+                        local etag = resp_headers and (resp_headers['etag'] or resp_headers['ETag']) or nil
+                        if etag then msg = msg .. " ETag: " .. tostring(etag) end
+                        ffi.copy(update_status, msg)
+                        update_result_color = imgui.ImVec4(0, 1, 0, 1)
+                    else
+                        -- first run: if lastCommit not set, check content equality and set lastCommit if equal
+                        if ini.config.lastCommit == "" then
+                            if local_norm == result_norm then
+                                ini.config.lastCommit = remote_sha
+                                inicfg.save(ini, "NeoFuck")
+                                local msg = "✅ У вас актуальная версия (commit: " .. string.sub(remote_sha, 1, 7) .. ")"
+                                ffi.copy(update_status, msg)
+                                update_result_color = imgui.ImVec4(0, 1, 0, 1)
+                            else
+                                local msg = "⚠ Обнаружено обновление: commit " .. string.sub(remote_sha, 1, 7)
+                                if remote_date then msg = msg .. " " .. remote_date end
+                                ffi.copy(update_status, msg)
+                                update_result_color = imgui.ImVec4(1, 0.6, 0, 1)
+                                update_window_open[0] = true
+                                latest_remote_sha = remote_sha
+                            end
+                        else
+                            -- known lastCommit is different -> show update
+                            if ini.config.lastCommit ~= remote_sha then
+                                local msg = "⚠ Обновление: commit " .. string.sub(remote_sha, 1, 7)
+                                if remote_date then msg = msg .. " " .. remote_date end
+                                ffi.copy(update_status, msg)
+                                update_result_color = imgui.ImVec4(1, 0.6, 0, 1)
+                                update_window_open[0] = true
+                                latest_remote_sha = remote_sha
+                            else
+                                local msg = "✅ У вас актуальная версия (commit: " .. string.sub(remote_sha, 1, 7) .. ")"
+                                ffi.copy(update_status, msg)
+                                update_result_color = imgui.ImVec4(0, 1, 0, 1)
+                            end
+                        end
+                    end
                 else
-                    ffi.copy(update_status, "⚠ Обнаружено обновление: код отличается от GitHub")
-                    update_result_color = imgui.ImVec4(1, 0.6, 0, 1)
-                    update_window_open[0] = true
+                    -- Fallback: compare file contents
+                    if local_norm == result_norm then
+                        local msg = "✅ У вас актуальная версия (код совпадает)"
+                        local etag = resp_headers and (resp_headers['etag'] or resp_headers['ETag']) or nil
+                        if etag then msg = msg .. " ETag: " .. tostring(etag) end
+                        ffi.copy(update_status, msg)
+                        update_result_color = imgui.ImVec4(0, 1, 0, 1)
+                    else
+                        local msg = "⚠ Обнаружено обновление: код отличается от GitHub"
+                        local etag = resp_headers and (resp_headers['etag'] or resp_headers['ETag']) or nil
+                        if etag then msg = msg .. " ETag: " .. tostring(etag) end
+                        ffi.copy(update_status, msg)
+                        update_result_color = imgui.ImVec4(1, 0.6, 0, 1)
+                        update_window_open[0] = true
+                    end
                 end
             else
                 ffi.copy(update_status, "❌ Ошибка чтения локального скрипта")
@@ -504,16 +583,20 @@ function downloadAndReplaceScript()
     update_checking[0] = true
     ffi.copy(update_status, "Загрузка новой версии...")
     lua_thread.create(function()
-        local ok, result = pcall(function()
+        local ok, result, resp_headers = pcall(function()
             local req = require("requests")
-            -- Append timestamp to bypass CDN cache on raw.githubusercontent
-            local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
-            local response = req.get(request_url)
-            if response.status_code == 200 then
-                return response.text
-            else
-                return nil
+            local response_text, response_headers = nil, nil
+            for i = 1, 5 do
+                local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
+                local response = req.get(request_url)
+                if response and response.status_code == 200 and response.text and #response.text > 0 then
+                    response_text = response.text
+                    response_headers = response.headers or {}
+                    break
+                end
+                wait(2000)
             end
+            return response_text, response_headers
         end)
 
         if ok and result then
@@ -523,7 +606,34 @@ function downloadAndReplaceScript()
                 local to_write = result:gsub("\r\n", "\n"):gsub("\r", "\n")
                 file:write(to_write)
                 file:close()
-                ffi.copy(update_status, "✅ Скрипт обновлён. Перезапустите его вручную.")
+                -- After successful write, record the commit SHA if we have it
+                if latest_remote_sha and latest_remote_sha ~= "" then
+                    ini.config.lastCommit = latest_remote_sha
+                    inicfg.save(ini, "NeoFuck")
+                else
+                    -- Try to fetch commit SHA once more and save it
+                    local okc, remote_sha = pcall(function()
+                        local req = require("requests")
+                        local cjson = require("cjson")
+                        local url = string.format("https://api.github.com/repos/%s/%s/commits?path=%s&per_page=1&_=%s", repo_owner, repo_name, repo_file, tostring(os.time()))
+                        local r = req.get(url)
+                        if r and r.status_code == 200 and r.text and #r.text > 0 then
+                            local tbl = cjson.decode(r.text)
+                            if type(tbl) == 'table' and #tbl >= 1 then
+                                return tbl[1].sha
+                            end
+                        end
+                        return nil
+                    end)
+                    if okc and remote_sha then
+                        ini.config.lastCommit = remote_sha
+                        inicfg.save(ini, "NeoFuck")
+                    end
+                end
+                local msg = "✅ Скрипт обновлён. Перезапустите его вручную."
+                local etag = resp_headers and (resp_headers['etag'] or resp_headers['ETag']) or nil
+                if etag then msg = msg .. " ETag: " .. tostring(etag) end
+                ffi.copy(update_status, msg)
                 update_result_color = imgui.ImVec4(0, 1, 0, 1)
             else
                 ffi.copy(update_status, "❌ Не удалось записать файл")
@@ -662,7 +772,6 @@ function main()
     end
 
 end
-
 
 
 
