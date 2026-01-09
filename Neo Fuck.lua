@@ -4,7 +4,7 @@
 --  Version: 1.0
 --========================================================--
 
-local script_ver = 'v2.0'
+local script_ver = 'v1.0'
 
 -- Проверка окружения
 function isMonetLoader()
@@ -462,7 +462,9 @@ function checkUpdate()
     lua_thread.create(function()
         local ok, result = pcall(function()
             local req = require("requests")
-            local response = req.get(update_url)
+            -- Append timestamp to bypass CDN cache on raw.githubusercontent
+            local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
+            local response = req.get(request_url)
             if response.status_code == 200 then
                 return response.text
             else
@@ -504,7 +506,9 @@ function downloadAndReplaceScript()
     lua_thread.create(function()
         local ok, result = pcall(function()
             local req = require("requests")
-            local response = req.get(update_url)
+            -- Append timestamp to bypass CDN cache on raw.githubusercontent
+            local request_url = update_url .. (update_url:find("%?") and "&" or "?") .. "_=" .. tostring(os.time())
+            local response = req.get(request_url)
             if response.status_code == 200 then
                 return response.text
             else
@@ -658,7 +662,6 @@ function main()
     end
 
 end
-
 
 
 
