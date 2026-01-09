@@ -103,7 +103,7 @@ local update_window_open = imgui.new.bool(false)
 local update_status = imgui.new.char[512]("Нажмите кнопку для проверки")
 local update_checking = imgui.new.bool(false)
 local update_result_color = imgui.ImVec4(1, 1, 1, 1)
-local update_url = "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/Neo%20Fuck%20v1.0.lua"
+local update_url = "https://raw.githubusercontent.com/Andrei375577/MONETMOBILE/refs/heads/main/Neo%20Fuck.lua"
 
 -- Опции
 local function setCJRun(state)
@@ -665,3 +665,4 @@ function main()
     end
 
 end
+
