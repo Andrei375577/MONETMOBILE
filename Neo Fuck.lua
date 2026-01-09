@@ -4,7 +4,7 @@
 --  Version: 1.0
 --========================================================--
 
-local script_ver = 'v1.0'
+local script_ver = 'v2.0'
 
 -- Проверка окружения
 function isMonetLoader()
@@ -772,6 +772,7 @@ function main()
     end
 
 end
+
 
 
 
