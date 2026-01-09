@@ -737,7 +737,8 @@ function main()
         end)
 
         sampRegisterChatCommand("cj", function()
-            applyCJState(not ini.config.cjRun)
+            setCJRun(not cjRun[0])
+		    return false
         end)
 
         -- Обработка клавиш для MoonLoader
