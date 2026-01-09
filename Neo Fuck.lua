@@ -475,7 +475,10 @@ function checkUpdate()
             if file then
                 local local_code = file:read("*a")
                 file:close()
-                if local_code == result then
+                -- Normalize line endings to LF for consistent comparison across loaders
+                local local_norm = local_code:gsub("\r\n", "\n"):gsub("\r", "\n")
+                local result_norm = result:gsub("\r\n", "\n"):gsub("\r", "\n")
+                if local_norm == result_norm then
                     ffi.copy(update_status, "✅ У вас актуальная версия (код совпадает)")
                     update_result_color = imgui.ImVec4(0, 1, 0, 1)
                 else
@@ -512,7 +515,9 @@ function downloadAndReplaceScript()
         if ok and result then
             local file = io.open(thisScript().path, "w+")
             if file then
-                file:write(result)
+                -- Normalize line endings to LF before writing to prevent extra blank lines
+                local to_write = result:gsub("\r\n", "\n"):gsub("\r", "\n")
+                file:write(to_write)
                 file:close()
                 ffi.copy(update_status, "✅ Скрипт обновлён. Перезапустите его вручную.")
                 update_result_color = imgui.ImVec4(0, 1, 0, 1)
