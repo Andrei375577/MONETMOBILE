@@ -1,4 +1,4 @@
-local script_ver = 'BETA v2.0'
+local script_ver = 'BETA v1.0'
 script_name('Neo Fuck')
 script_author('Anonymous')
 script_version('BETA v1.0')
@@ -592,3 +592,4 @@ function downloadAndReplaceScript()
         update_checking[0] = false
     end)
 end
+
