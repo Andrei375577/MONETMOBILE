@@ -100,6 +100,7 @@ if MONET_VERSION ~= nil then
     )
     
     function main()
+        checkUpdate()
         sampRegisterChatCommand("rr", function()
             windowVisible[0] = not windowVisible[0]
         end)
@@ -460,12 +461,8 @@ if MONET_DPI_SCALE == nil then MONET_DPI_SCALE = 1.0 end
 local wm    = require("windows.message")
 local memory  = require("memory")
 local ffi     = require("ffi")
-local effil   = require("effil")
 local imgui   = require("mimgui")
 local fa      = require("fAwesome6_solid")
-local inicfg  = require("inicfg")
-local sampev  = require("samp.events")
-local events  = require("samp.events")
 local update_status = imgui.new.char[512]("Нажмите кнопку для проверки")
 local update_window_open = imgui.new.bool(false)
 local update_checking = imgui.new.bool(false)
@@ -556,6 +553,40 @@ function checkUpdate()
             end
         else
             ffi.copy(update_status, "❌ Ошибка загрузки с GitHub")
+            update_result_color = imgui.ImVec4(1, 0, 0, 1)
+        end
+        update_checking[0] = false
+    end)
+end
+function downloadAndReplaceScript()
+    update_checking[0] = true
+    ffi.copy(update_status, "Загрузка новой версии...")
+    lua_thread.create(function()
+        local ok, result = pcall(function()
+            local req = require("requests")
+            local response = req.get(update_url)
+            if response.status_code == 200 then
+                return response.text
+            else
+                return nil
+            end
+        end)
+
+        if ok and result then
+            local file = io.open(thisScript().path, "w+")
+            if file then
+                -- Normalize line endings to LF before writing to prevent extra blank lines
+                local to_write = result:gsub("\r\n", "\n"):gsub("\r", "\n")
+                file:write(to_write)
+                file:close()
+                ffi.copy(update_status, "✅ Скрипт обновлён. Перезапустите его вручную.")
+                update_result_color = imgui.ImVec4(0, 1, 0, 1)
+            else
+                ffi.copy(update_status, "❌ Не удалось записать файл")
+                update_result_color = imgui.ImVec4(1, 0, 0, 1)
+            end
+        else
+            ffi.copy(update_status, "❌ Ошибка загрузки обновления")
             update_result_color = imgui.ImVec4(1, 0, 0, 1)
         end
         update_checking[0] = false
